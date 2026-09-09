@@ -1,0 +1,86 @@
+site_name: support-agent Docs
+site_description: Customer-support RAG agent — public documentation
+site_url: https://bruj0.github.io/support-agent
+repo_url: https://github.com/bruj0/support-agent
+repo_name: bruj0/support-agent
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  font:
+    text: Inter
+    code: JetBrains Mono
+  icon:
+    logo: material/robot
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - toc.follow
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+  - panzoom:
+      key: "alt"
+      hint_location: "top"
+      full_screen: true
+      always_show_hint: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Architecture (C4):
+      - Overview: c4/index.md
+      - "1. System Context": c4/1-system-context.md
+      - "2. Containers": c4/2-containers.md
+      - "3. Components": c4/3-components.md
+      - Deep Dives:
+        - Ingestion pipeline: c4/4-deep-dive-ingestion.md
+        - Answering workflow: c4/4-deep-dive-answering.md
+        - Observability (one request_id): c4/4-deep-dive-observability.md
+        - Deployment (Helm chart): c4/4-deep-dive-deployment.md
+  - Architecture walkthrough:
+      - Architecture overview: architecture/architecture.md
+      - Local flow: architecture/local-flow.md
+      - AWS flow: architecture/aws-flow.md

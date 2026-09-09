@@ -57,15 +57,15 @@ a feature from "what the user sees" all the way back to
 | # | Doc | What's in it | Time |
 |---|---|---|---|
 | 1 | `README.md` (this file) | How it works at a glance, how to run it, how to test it, the features, the LangGraph design in 30 seconds. | 10 min skim |
-| 2 | [`AGENTS.md`](AGENTS.md) | Cross-cutting rules: hexagonal layering, TDD, observability, security, error mapping, coverage thresholds, the 23-rule cheat-sheet. | 10 min |
-| 3 | [`CONTEXT.md`](CONTEXT.md) | Glossary: `SourcePage`, `Chunk`, `RetrievedChunk`, `Question`, `Answer`, `AgentState`, `Port`, `Adapter`, `CompositionRoot`, `LangGraphWorkflow`, `LowConfidencePolicy`, `SecretScrubber`, `CleanedPage`. | 5 min |
-| 4 | [`docs/architecture/architecture.md`](docs/architecture/architecture.md) | The guided tour of the source tree: hexagonal layers end-to-end, a `POST /ask` trace, a `POST /ask` failure-injection matrix, a `Run ingestion Job` walkthrough, why each subsystem boundary was drawn where it is. | 30 min |
-| 5 | [`docs/architecture/local-flow.md`](docs/architecture/local-flow.md) | The local flow diagram + 9-step ask walkthrough + 9-step ingestion walkthrough + shared infrastructure section. | 10 min |
-| 6 | [`docs/architecture/aws-flow.md`](docs/architecture/aws-flow.md) | The AWS production diagram + scaling table + security table + failure-mode recovery table. | 10 min |
-| 7 | [`specs/001-customer-support-rag-agent/spec.md`](specs/001-customer-support-rag-agent/spec.md) | The original functional + non-functional requirements. The "why" for every feature. | 15 min |
-| 8 | [`specs/001-customer-support-rag-agent/plan.md`](specs/001-customer-support-rag-agent/plan.md) | Architecture decisions, phasing, trade-offs at a higher level than `architecture.md`. | 20 min |
-| 9 | [`specs/001-customer-support-rag-agent/decomposition.md`](specs/001-customer-support-rag-agent/decomposition.md) | Subsystem boundaries derived via Alexander's misfit analysis — the rationale for splitting `S1 Ingestion Pipeline` from `S2 Retrieval & Answering` from `S3 API & Cross-Cutting Safety` from `S4 Helm Packaging & CI`. | 15 min |
-| 10 | [`specs/001-customer-support-rag-agent/tasks/`](specs/001-customer-support-rag-agent/tasks/) | Per-WP prompts + `implement-summary.json` + `review-summary-{v1,v2}.json` — the audit trail of "what landed in WP0N, what the reviewer said, what changed between review v1 and v2". | 30 min |
+| 2 | [`AGENTS.md`](https://github.com/bruj0/support-agent/blob/main/AGENTS.md) | Cross-cutting rules: hexagonal layering, TDD, observability, security, error mapping, coverage thresholds, the 23-rule cheat-sheet. | 10 min |
+| 3 | [`CONTEXT.md`](https://github.com/bruj0/support-agent/blob/main/CONTEXT.md) | Glossary: `SourcePage`, `Chunk`, `RetrievedChunk`, `Question`, `Answer`, `AgentState`, `Port`, `Adapter`, `CompositionRoot`, `LangGraphWorkflow`, `LowConfidencePolicy`, `SecretScrubber`, `CleanedPage`. | 5 min |
+| 4 | [`architecture/architecture.md`](architecture/architecture.md) | The guided tour of the source tree: hexagonal layers end-to-end, a `POST /ask` trace, a `POST /ask` failure-injection matrix, a `Run ingestion Job` walkthrough, why each subsystem boundary was drawn where it is. | 30 min |
+| 5 | [`architecture/local-flow.md`](architecture/local-flow.md) | The local flow diagram + 9-step ask walkthrough + 9-step ingestion walkthrough + shared infrastructure section. | 10 min |
+| 6 | [`architecture/aws-flow.md`](architecture/aws-flow.md) | The AWS production diagram + scaling table + security table + failure-mode recovery table. | 10 min |
+| 7 | [`spec.md`](https://github.com/bruj0/support-agent/blob/main/specs/001-customer-support-rag-agent/spec.md) | The original functional + non-functional requirements. The "why" for every feature. | 15 min |
+| 8 | [`plan.md`](https://github.com/bruj0/support-agent/blob/main/specs/001-customer-support-rag-agent/plan.md) | Architecture decisions, phasing, trade-offs at a higher level than `architecture.md`. | 20 min |
+| 9 | [`decomposition.md`](https://github.com/bruj0/support-agent/blob/main/specs/001-customer-support-rag-agent/decomposition.md) | Subsystem boundaries derived via Alexander's misfit analysis — the rationale for splitting `S1 Ingestion Pipeline` from `S2 Retrieval & Answering` from `S3 API & Cross-Cutting Safety` from `S4 Helm Packaging & CI`. | 15 min |
+| 10 | [`tasks/`](https://github.com/bruj0/support-agent/tree/main/specs/001-customer-support-rag-agent/tasks) | Per-WP prompts + `implement-summary.json` + `review-summary-{v1,v2}.json` — the audit trail of "what landed in WP0N, what the reviewer said, what changed between review v1 and v2". | 30 min |
 
 **How to trace a design decision:**
 
@@ -343,7 +343,7 @@ curl -s -X POST localhost:8080/ask \
 ```
 
 For the full architectural walkthrough see
-[`docs/architecture/architecture.md`](docs/architecture/architecture.md)
+[`architecture/architecture.md`](architecture/architecture.md)
 — a separate document aimed at a developer landing in this
 repo with no prior context. It walks every layer of the
 hexagonal architecture (`domain` / `application` / `adapter` /
@@ -363,10 +363,11 @@ it is. It complements (does not duplicate) this README:
 
 Cross-cutting rules (TDD, worktrees, layer boundaries,
 coverage thresholds, the three observability rules) live
-in [`AGENTS.md`](AGENTS.md); the glossary is in
-[`CONTEXT.md`](CONTEXT.md). For the Helm / EKS production
-deploy see the chart at
-[`deploy/helm/support-bot/`](deploy/helm/support-bot/).
+in [`AGENTS.md`](https://github.com/bruj0/support-agent/blob/main/AGENTS.md);
+the glossary is in
+[`CONTEXT.md`](https://github.com/bruj0/support-agent/blob/main/CONTEXT.md).
+For the Helm / EKS production deploy see the chart at
+[`deploy/helm/support-bot/`](https://github.com/bruj0/support-agent/tree/main/deploy/helm/support-bot).
 
 ---
 
@@ -671,7 +672,7 @@ and logs `adapter.call.start` / `adapter.call.ok` at DEBUG /
 INFO with `request_id`, `latency_ms`, and counts.
 
 The full local flow (including the ingestion side branch) is
-in [`docs/architecture/local-flow.md`](docs/architecture/local-flow.md).
+in [`architecture/local-flow.md`](architecture/local-flow.md).
 
 ---
 
@@ -743,12 +744,12 @@ tests/
 
 ## Production deployment (Helm chart)
 
-The Helm chart at [`deploy/helm/support-bot/`](deploy/helm/support-bot/)
+The Helm chart at [`deploy/helm/support-bot/`](https://github.com/bruj0/support-agent/tree/main/deploy/helm/support-bot)
 packages the FastAPI Deployment, the Chroma Deployment +
 PVC, and the ingestion Job with `post-install` /
 `post-upgrade` Helm hooks. **Value validation is done by
 Helm 3's `values.schema.json`** (see
-[`deploy/helm/support-bot/values.schema.json`](deploy/helm/support-bot/values.schema.json))
+[`deploy/helm/support-bot/values.schema.json`](https://github.com/bruj0/support-agent/blob/main/deploy/helm/support-bot/values.schema.json))
 — `helm install` / `helm template` validate the merged
 values against the JSON Schema **before** rendering any
 templates, so a misconfigured install fails fast at the

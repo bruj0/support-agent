@@ -6,8 +6,8 @@
 > from `POST /ask` to a final answer.
 >
 > This document complements — it does not replace — the
-> project-specific [AGENTS.md](../../AGENTS.md) (cross-cutting rules),
-> [CONTEXT.md](../../CONTEXT.md) (glossary), and the per-work-package
+> project-specific [AGENTS.md](https://github.com/bruj0/support-agent/blob/main/AGENTS.md) (cross-cutting rules),
+> [CONTEXT.md](https://github.com/bruj0/support-agent/blob/main/CONTEXT.md) (glossary), and the per-work-package
 > task files under `specs/001-customer-support-rag-agent/tasks/`.
 
 ---
@@ -26,11 +26,11 @@
    - [6.2 Answering workflow (LangGraph)](#62-answering-workflow-langgraph)
 7. [The adapter layer](#7-the-adapter-layer)
 8. [The composition root](#8-the-composition-root)
-9. [Observability: one request_id across all layers](#9-observability-one-request_id-across_all_layers)
+9. [Observability: one request_id across all layers](#9-observability-one-request_id-across-all-layers)
 10. [Security: secret scrubbing](#10-security-secret-scrubbing)
 11. [Configuration](#11-configuration)
 12. [Local development end-to-end](#12-local-development-end-to-end)
-13. [Walkthroughs — tracing a request from end to end](#13-walkthroughs--tracing-a-request-from-end-to-end)
+13. [Walkthroughs — tracing a request from end to end](#13-walkthroughs-tracing-a-request-from-end-to-end)
    - [13.1 Walkthrough: `POST /ask`](#131-walkthrough-post-ask)
    - [13.2 Walkthrough: ingestion Job](#132-walkthrough-ingestion-job)
 14. [Glossary](#14-glossary)

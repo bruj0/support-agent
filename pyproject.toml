@@ -52,6 +52,14 @@ dependencies = [
 local-embedder = [
     "sentence-transformers>=3.0,<4",
 ]
+# Consumed by ``.github/workflows/docs.yml`` via ``uv sync --extra docs``.
+# Builds the public documentation site with MkDocs Material.
+docs = [
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.0",
+    "pymdown-extensions>=10.0",
+    "mkdocs-panzoom-plugin>=0.1",
+]
 dev = [
     "pytest>=8.2,<9",
     "pytest-cov>=5.0,<6",
