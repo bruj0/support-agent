@@ -32,7 +32,9 @@ from support_bot.domain.ingestion.entities import (
 from support_bot.domain.shared.errors import ConfigurationError
 
 
-def _ps(*, chunks: list[SemanticChunk], source_url: str = "https://example.com/help") -> PageStructure:
+def _ps(
+    *, chunks: list[SemanticChunk], source_url: str = "https://example.com/help"
+) -> PageStructure:
     return PageStructure(
         source_url=source_url,
         chunks=chunks,

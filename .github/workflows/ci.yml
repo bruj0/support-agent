@@ -64,12 +64,16 @@ jobs:
           version: v3.15.0
 
       - name: Helm lint
-        run: helm lint deploy/helm/support-bot
+        run: |
+          helm lint deploy/helm/support-bot \
+            --set secret.openaiApiKey=sk-CIaaaaaaaaaaaaaaaaaaaaaaaa \
+            --set config.sourceUrl=https://example.com/internet
 
       - name: Helm template (dev values) -- kind coverage
         run: |
           KINDS=$(helm template support-bot deploy/helm/support-bot \
             --values deploy/helm/support-bot/values-dev.yaml \
+            --set secret.openaiApiKey=sk-CIaaaaaaaaaaaaaaaaaaaaaaaa \
             | grep -E '^kind:' | sort -u)
           echo "$KINDS"
           for k in Deployment Service ConfigMap Secret PersistentVolumeClaim Job; do
@@ -80,6 +84,7 @@ jobs:
         run: |
           if helm template support-bot deploy/helm/support-bot \
               --values deploy/helm/support-bot/values-dev.yaml \
+              --set secret.openaiApiKey=sk-CIaaaaaaaaaaaaaaaaaaaaaaaa \
               | grep -E 'sk-[A-Za-z0-9]{32,}'; then
             echo "Rendered manifest contains a literal OpenAI-style key" >&2
             exit 1

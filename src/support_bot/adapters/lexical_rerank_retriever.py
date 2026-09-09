@@ -35,7 +35,8 @@ from __future__ import annotations
 
 import re
 import time
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 import structlog
 
@@ -56,9 +57,9 @@ _DUTCH_STOPWORDS: frozenset[str] = frozenset(
         "uw", "onze", "hun", "haar", "hem", "wat", "wie", "hoe", "waar",
         "wanneer", "waarom", "welke", "niet", "wel", "ook", "maar",
         "dan", "als", "omdat", "dus", "nog", "al", "alleen", "toch",
-        "ja", "nee", "hier", "daar", "nu", "dan", "worden", "krijg",
+        "ja", "nee", "hier", "daar", "nu", "worden", "krijg",
         "krijgen", "heb", "hebt", "heeft", "hebben", "had", "hadden",
-        "doe", "doet", "doen", "dit", "deze", "die", "zo", "heel",
+        "doe", "doet", "doen", "deze", "zo", "heel",
     }
 )
 

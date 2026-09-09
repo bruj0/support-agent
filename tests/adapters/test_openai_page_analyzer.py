@@ -261,8 +261,8 @@ def test_analyze_returns_empty_structure_when_chunks_empty(
 class MagicMock:
     """Tiny MagicMock-like for OpenAI exception kwargs."""
 
-    def __getattr__(self, name: str) -> "MagicMock":
+    def __getattr__(self, name: str) -> MagicMock:
         return self
 
-    def __call__(self, *args: Any, **kwargs: Any) -> "MagicMock":
+    def __call__(self, *args: Any, **kwargs: Any) -> MagicMock:
         return self
