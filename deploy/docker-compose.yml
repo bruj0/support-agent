@@ -1,0 +1,126 @@
+# docker-compose.yml — WP04 T034.
+#
+# Local end-to-end stack per AGENTS.md §4.4 / FR-019.
+#
+# Three services:
+#   - chroma   : the Chroma vector store (HTTP, persistent volume)
+#   - api      : the FastAPI support-bot service (built from
+#                docker/api.Dockerfile)
+#   - ingestion: a one-shot ingestion Job (profile "ingest", so
+#                `docker compose up` does NOT run it by default)
+#
+# Operator workflow:
+#   cp .env.example .env && <fill keys>
+#   docker compose up -d --wait           # api + chroma
+#   docker compose --profile ingest up ingestion   # populate Chroma
+#   curl localhost:8080/healthz           # smoke
+#
+# The `api` service uses `env_file: .env` so the composition root
+# (`support_bot.composition.production_factory`) can read every
+# `Settings` field without rebuilding the image per environment.
+#
+# The `ingestion` service shares the same image (it just calls
+# `python -m support_bot.composition.ingestion_main` instead of
+# the FastAPI entrypoint). The docker/api.Dockerfile's `CMD []`
+# leaves the entrypoint override-able so docker-compose can pass
+# the alternative command.
+
+name: support-bot
+
+services:
+  chroma:
+    image: chromadb/chroma:1.5.9
+    container_name: support-bot-chroma
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    restart: unless-stopped
+    networks:
+      - support_net
+    healthcheck:
+      # Chroma 1.5.x: /api/v1/heartbeat returns 410, server is slim
+      # and ships neither python nor curl/wget. Use bash's /dev/tcp
+      # to issue a minimal HTTP/1.0 GET to /api/v2/heartbeat.
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/localhost/8000 && printf \"GET /api/v2/heartbeat HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n\" >&3 && grep -q \"200 OK\" <&3'"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 20s
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/api.Dockerfile
+    container_name: support-bot-api
+    depends_on:
+      chroma:
+        condition: service_healthy
+    env_file:
+      # Resolved relative to this compose file's directory.
+      # `../.env` is the operator-managed secret file at the
+      # repository root (WP04 T035).
+      - ../.env
+    environment:
+      # Hard-pin the Chroma endpoint inside the bridge network.
+      # The operator can still override CHROMA_HOST/PORT in .env
+      # for an external Chroma, but the default is in-network.
+      CHROMA_HOST: chroma
+      CHROMA_PORT: "8000"
+    ports:
+      - "8080:8000"
+    restart: unless-stopped
+    networks:
+      - support_net
+    healthcheck:
+      # The FastAPI app exposes /healthz (FR-002, AGENTS.md §6.7).
+      test: ["CMD", "python", "-c", "import urllib.request,sys; \
+             sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz', timeout=2).status == 200 else 1)"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 10s
+
+  ingestion:
+    build:
+      context: ..
+      dockerfile: docker/api.Dockerfile
+    container_name: support-bot-ingestion
+    depends_on:
+      chroma:
+        condition: service_healthy
+    env_file:
+      - ../.env
+    environment:
+      CHROMA_HOST: chroma
+      CHROMA_PORT: "8000"
+      # WP06 — defaults mirror values.yaml. Operators can
+      # override per-environment via .env or by editing the
+      # `environment:` block. To revert to the WP03
+      # fixed-size chunker pipeline, set ANALYZER_BACKEND=none
+      # and CHUNKER_BACKEND=fixed_size here.
+      ANALYZER_BACKEND: ${ANALYZER_BACKEND:-openai}
+      CHUNKER_BACKEND: ${CHUNKER_BACKEND:-hybrid}
+      OPENAI_PAGE_ANALYZER_MODEL: ${OPENAI_PAGE_ANALYZER_MODEL:-gpt-4o-mini}
+    # `profiles: ["ingest"]` means a bare `docker compose up`
+    # does NOT start this service. Operators opt in with
+    # `docker compose --profile ingest up ingestion`.
+    profiles:
+      - ingest
+    networks:
+      - support_net
+    # Override the default uvicorn entrypoint to invoke the
+    # ingestion CLI. The api.Dockerfile's ENTRYPOINT is
+    # `python -m support_bot.composition`; here we hand a direct
+    # command instead so the Job exits cleanly when done.
+    entrypoint: ["python", "-m", "support_bot.composition.ingestion_main"]
+    command: []
+    restart: "no"
+
+volumes:
+  chroma_data:
+    driver: local
+
+networks:
+  support_net:
+    driver: bridge

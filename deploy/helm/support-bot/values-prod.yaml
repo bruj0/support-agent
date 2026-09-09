@@ -1,0 +1,39 @@
+# values-prod.yaml -- 3 replicas behind a PDB, HPA on CPU,
+# ingress enabled, larger PVC.
+
+replicaCount: 3
+config:
+  logLevel: INFO
+  sourceUrl: "https://replace-me.example.com/support"
+  embedderBackend: local
+  answererBackend: openai
+  # Prod defaults: hybrid chunker + LLM analyzer enabled.
+  analyzerBackend: openai
+  chunkerBackend: hybrid
+  openaiPageAnalyzerModel: gpt-4o-mini
+  lowConfidenceThreshold: "0.5"
+persistence:
+  enabled: true
+  size: 10Gi
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 60
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
+  hosts:
+    - host: support-bot.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: support-bot-tls
+      hosts:
+        - support-bot.example.com

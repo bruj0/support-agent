@@ -1,0 +1,1 @@
+"""Ingestion-side fakes: scraper, chunker, embedder, vector store."""

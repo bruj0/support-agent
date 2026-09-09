@@ -1,0 +1,24 @@
+# values-dev.yaml -- single-replica local-dev stack.
+
+replicaCount: 1
+config:
+  logLevel: DEBUG
+  sourceUrl: "https://example.com/internet"
+  embedderBackend: local
+  answererBackend: openai
+  # Dev defaults: cost-controlled. analyzerBackend=none keeps
+  # the WP03 fixed-size chunker path so CI does not require an
+  # OpenAI key.
+  analyzerBackend: none
+  chunkerBackend: fixed_size
+  openaiPageAnalyzerModel: gpt-4o-mini
+  lowConfidenceThreshold: "0.3"
+persistence:
+  enabled: true
+  size: 1Gi
+podDisruptionBudget:
+  enabled: false
+autoscaling:
+  enabled: false
+ingress:
+  enabled: false

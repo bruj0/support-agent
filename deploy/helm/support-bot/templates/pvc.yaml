@@ -1,0 +1,22 @@
+{{- if .Values.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "support-bot.componentName" (list . "chroma-data") }}
+  labels:
+    {{- include "support-bot.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml .Values.persistence.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size | quote }}
+  {{- if .Values.persistence.storageClassName }}
+  storageClassName: {{ .Values.persistence.storageClassName | quote }}
+  {{- end }}
+  # The chart does not enforce persistentVolumeReclaimPolicy
+  # (it's a PV-level field, not a PVC-level one). The chart
+  # README and the production deployment guide instruct the
+  # operator to provision the underlying StorageClass with
+  # reclaimPolicy: Retain per AGENTS.md §2.4.
+{{- end }}

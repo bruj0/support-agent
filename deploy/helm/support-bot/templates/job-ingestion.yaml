@@ -1,0 +1,46 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "support-bot.componentName" (list . "ingestion") }}
+  labels:
+    {{- include "support-bot.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ingestion
+  annotations:
+    # Helm hooks: the ingestion Job runs automatically on
+    # `helm install` (post-install) and `helm upgrade`
+    # (post-upgrade). The hook-delete-policy removes the Job
+    # after a successful run so the cluster doesn't accumulate
+    # old Jobs. Manual re-trigger: copy the Job, change the
+    # name, kubectl apply.
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        {{- include "support-bot.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: ingestion
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: ingestion
+          image: {{ include "support-bot.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["python", "-m", "support_bot.composition.ingestion_main"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "support-bot.configMapName" . }}
+            - secretRef:
+                name: {{ include "support-bot.secretName" . }}
+          resources:
+            {{- toYaml .Values.resources.api | nindent 12 }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL

@@ -1,0 +1,87 @@
+# GitHub Actions CI workflow for support-bot (WP05 T049).
+#
+# Runs on every push and PR. Job steps mirror the WP05 acceptance
+# criteria and the AGENTS.md §0 quality gates.
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test + architecture gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.5.x"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install Python
+        run: uv python install 3.11
+
+      - name: Sync dependencies
+        run: uv sync --extra dev
+
+      - name: Install additional test deps
+        run: |
+          uv pip install "responses>=0.25" "freezegun>=1.5"
+
+      - name: Pytest (not e2e)
+        run: uv run pytest -q -m 'not e2e'
+
+      - name: Pytest with coverage gate
+        run: uv run pytest --cov=src/support_bot --cov-fail-under=80 -q
+
+      - name: Interrogate (docstring coverage)
+        run: uv run interrogate --fail-under=100 src/support_bot
+
+      - name: Lint (ruff)
+        run: uv run ruff check src/ tests/
+
+      - name: Import-linter architecture contracts
+        run: uv run lint-imports --no-logo
+
+      - name: Architecture tests (lint-imports + helm)
+        run: uv run pytest tests/architecture -v
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.15.0
+
+      - name: Helm lint
+        run: helm lint deploy/helm/support-bot
+
+      - name: Helm template (dev values) -- kind coverage
+        run: |
+          KINDS=$(helm template support-bot deploy/helm/support-bot \
+            --values deploy/helm/support-bot/values-dev.yaml \
+            | grep -E '^kind:' | sort -u)
+          echo "$KINDS"
+          for k in Deployment Service ConfigMap Secret PersistentVolumeClaim Job; do
+            echo "$KINDS" | grep -q "^kind: $k$" || (echo "missing kind: $k" && exit 1)
+          done
+
+      - name: Secret scan on rendered manifests (NFR-003)
+        run: |
+          if helm template support-bot deploy/helm/support-bot \
+              --values deploy/helm/support-bot/values-dev.yaml \
+              | grep -E 'sk-[A-Za-z0-9]{32,}'; then
+            echo "Rendered manifest contains a literal OpenAI-style key" >&2
+            exit 1
+          fi
+          echo "no literal keys in rendered manifest"

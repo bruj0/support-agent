@@ -1,0 +1,1 @@
+"""Ingestion domain: entities + ports for the content pipeline."""
