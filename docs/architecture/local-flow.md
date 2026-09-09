@@ -54,8 +54,8 @@ flowchart TB
     UPSERT -->|"chromadb.HttpClient<br/>:8000"| CHROMA[("Chroma<br/>chromadb/chroma:1.5.9<br/>persistent volume")]
     RET -->|"chromadb.HttpClient"| CHROMA
 
-    classDef store fill:#fde68a,stroke:#92400e,stroke-width:2px,color:#1a1a1a;
-    classDef edge fill:#1e40af,stroke:#93c5fd,color:#ffffff;
+    classDef store fill:#fff5e1,stroke:#cc8a00,stroke-width:2px,color:#1a1a1a;
+    classDef edge fill:#1e40af,stroke:#1e3a8a,color:#ffffff;
     class CHROMA store;
 ```
 

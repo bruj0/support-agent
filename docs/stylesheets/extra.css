@@ -1,0 +1,41 @@
+/* Mermaid diagram theming.
+   Pattern from the mkdocs-c4-site skill: drive Mermaid's colors through
+   Material's --md-mermaid-* CSS variables. The diagram surface itself is
+   always a light card so node fills/strokes stay readable in both light and
+   dark mode -- the page background changes, the diagram surface doesn't.
+   This avoids the inline-style-vs-CSS conflict that defeats Mermaid theme
+   overrides. */
+
+:root {
+  --md-mermaid-edge-color: #1c2d3e;
+  --md-mermaid-label-bg-color: #ffffff;
+  --md-mermaid-label-fg-color: #1c2d3e;
+  --md-mermaid-node-bg-color: #ffffff;
+  --md-mermaid-node-fg-color: #1c2d3e;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-mermaid-edge-color: #1c2d3e;
+  --md-mermaid-label-bg-color: #ffffff;
+  --md-mermaid-label-fg-color: #1c2d3e;
+  --md-mermaid-node-bg-color: #ffffff;
+  --md-mermaid-node-fg-color: #1c2d3e;
+}
+
+/* Pin the diagram surface to a light card in both themes -- the node
+   colors below assume a light backdrop. Without this, slate-mode users
+   see the dark page bleed through the diagram and lose contrast. */
+.mermaid {
+  background-color: #ffffff;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+/* Force node labels and text to a dark color that pairs with the light
+   card background. classDef `color:#ffffff` rules in the diagram source
+   win here because they're applied as inline styles on the SVG. */
+.mermaid .nodeLabel,
+.mermaid .nodeLabel p,
+.mermaid foreignObject div {
+  color: #1c2d3e !important;
+}
