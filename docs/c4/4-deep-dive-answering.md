@@ -36,12 +36,6 @@ flowchart TD
     GEN -.uses.-> GEN2
     EDGE -.uses.-> POL
 
-    classDef node fill:#1e40af,stroke:#1e3a8a,color:#ffffff;
-    classDef edge fill:#9a3412,stroke:#7c2d12,color:#ffffff;
-    classDef ext fill:#475569,stroke:#1e293b,color:#ffffff;
-    class RET,GUARD,GEN,REF node;
-    class EDGE edge;
-    class RETR,GEN2,POL ext;
 ```
 
 ## State shape
@@ -145,7 +139,6 @@ The `LowConfidencePolicy` adapter (`ThresholdLowConfidencePolicy`):
 
 ```python
 # src/support_bot/adapters/low_confidence_policy.py
-class ThresholdLowConfidencePolicy:
     def __init__(self, *, threshold: float = 0.5): ...
     def should_refuse(self, chunks: list[RetrievedChunk]) -> bool:
         if not chunks:

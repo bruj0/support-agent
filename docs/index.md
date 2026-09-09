@@ -153,13 +153,6 @@ flowchart TD
     RET -.uses.-> RETR
     GEN -.uses.-> GEN2
     EDGE -.uses.-> POL
-
-    classDef node fill:#0b3d91,stroke:#7aa7ff,color:#ffffff;
-    classDef edge fill:#7a4f01,stroke:#ffc46b,color:#ffffff;
-    classDef ext fill:#1f2937,stroke:#9ca3af,color:#e5e7eb;
-    class RET,GUARD,GEN,REF node;
-    class EDGE edge;
-    class RETR,GEN2,POL ext;
 ```
 
 **State.** `AgentState` is a single Pydantic v2 frozen model

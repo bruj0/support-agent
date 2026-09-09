@@ -35,8 +35,6 @@ flowchart LR
     REQ_ING --> LOCK["IngestionRunLock<br/>&lt;LOCK_DIR&gt;/&lt;request_id&gt;.lock"]
     REQ_ING --> ING["IngestionService<br/>(adapter.page_analyzer.analyze,<br/>ingestion.run spans)"]
 
-    classDef req fill:#7dd3fc,stroke:#075985,stroke-width:2px,color:#0c1f33;
-    classDef ing fill:#fde68a,stroke:#92400e,stroke-width:2px,color:#1a1a1a;
 ```
 
 ## The three rules
