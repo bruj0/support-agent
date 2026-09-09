@@ -1,108 +1,12 @@
-/* High-contrast Mermaid theming that follows the Material color scheme.
-   The default browser-rendered SVG inherits the document's currentColor for
-   text and uses light grey fills — which are unreadable against the Material
-   light-mode background. We override the relevant selectors with palette
-   variables that flip on `data-md-color-scheme="slate"`. */
+/* Lightweight page-level polish. The Mermaid color story is handled by
+   docs/javascripts/mermaid-theme.js, which re-initializes Mermaid with the
+   correct themeVariables for the current Material color scheme -- that
+   approach beats CSS overrides because Mermaid writes colors into the
+   generated SVG as inline style="..." attributes, which CSS can't override.
+   Anything we put here applies only to the surrounding chrome, not to the
+   diagram contents themselves. */
 
-:root {
-  --mermaid-node-fill: #ffffff;
-  --mermaid-node-stroke: #1f2937;
-  --mermaid-node-text: #0f172a;
-  --mermaid-edge-color: #334155;
-  --mermaid-edge-label-bg: #ffffff;
-  --mermaid-cluster-fill: #f1f5f9;
-  --mermaid-cluster-stroke: #64748b;
-  --mermaid-label-bg: #ffffff;
-}
-
-[data-md-color-scheme="slate"] {
-  --mermaid-node-fill: #1e293b;
-  --mermaid-node-stroke: #94a3b8;
-  --mermaid-node-text: #f1f5f9;
-  --mermaid-edge-color: #cbd5e1;
-  --mermaid-edge-label-bg: #0f172a;
-  --mermaid-cluster-fill: #0b1220;
-  --mermaid-cluster-stroke: #64748b;
-  --mermaid-label-bg: #1e293b;
-}
-
-/* Default node styling — applies to basic shape, round, rect, etc. */
-.mermaid .node rect,
-.mermaid .node polygon,
-.mermaid .node ellipse,
-.mermaid .node circle,
-.mermaid .node path {
-  fill: var(--mermaid-node-fill) !important;
-  stroke: var(--mermaid-node-stroke) !important;
-}
-
-.mermaid .node .label,
-.mermaid .nodeLabel,
-.mermaid foreignObject div {
-  color: var(--mermaid-node-text) !important;
-  fill: var(--mermaid-node-text) !important;
-}
-
-/* Edges + arrows. */
-.mermaid .edgePath .path,
-.mermaid .flowchart-link {
-  stroke: var(--mermaid-edge-color) !important;
-}
-
-.mermaid .arrowheadPath {
-  fill: var(--mermaid-edge-color) !important;
-  stroke: var(--mermaid-edge-color) !important;
-}
-
-.mermaid .edgeLabel {
-  background-color: var(--mermaid-edge-label-bg) !important;
-  color: var(--mermaid-node-text) !important;
-}
-.mermaid .edgeLabel rect {
-  fill: var(--mermaid-edge-label-bg) !important;
-}
-
-/* Cluster / subgraph backgrounds. */
-.mermaid .cluster rect {
-  fill: var(--mermaid-cluster-fill) !important;
-  stroke: var(--mermaid-cluster-stroke) !important;
-}
-.mermaid .cluster text,
-.mermaid .cluster .nodeLabel {
-  color: var(--mermaid-node-text) !important;
-  fill: var(--mermaid-node-text) !important;
-}
-
-/* Sequence diagrams — actor lifelines + notes. */
-.mermaid .actor,
-.mermaid text.actor {
-  fill: var(--mermaid-node-text) !important;
-}
-.mermaid .actor-line {
-  stroke: var(--mermaid-edge-color) !important;
-}
-.mermaid .messageLine0,
-.mermaid .messageLine1 {
-  stroke: var(--mermaid-edge-color) !important;
-}
-.mermaid .messageText {
-  fill: var(--mermaid-node-text) !important;
-  stroke: var(--mermaid-node-text) !important;
-}
-.mermaid .labelBox,
-.mermaid .labelText,
-.mermaid .loopText {
-  fill: var(--mermaid-node-text) !important;
-}
-.mermaid .note {
-  fill: var(--mermaid-cluster-fill) !important;
-  stroke: var(--mermaid-cluster-stroke) !important;
-}
-.mermaid .noteText {
-  fill: var(--mermaid-node-text) !important;
-}
-
-/* Keep the panzoom overlay hint visible against the diagram background. */
+/* Keep the panzoom hint visible against the diagram background. */
 .mermaid svg {
   background-color: transparent;
 }

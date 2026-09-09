@@ -11,6 +11,9 @@ site_dir: site
 extra_css:
   - stylesheets/extra.css
 
+extra_javascript:
+  - javascripts/mermaid-theme.js
+
 theme:
   name: material
   font:
