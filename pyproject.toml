@@ -1,0 +1,212 @@
+[project]
+name = "support-bot"
+version = "0.1.0"
+description = "Customer-support RAG agent (LangGraph + Chroma)."
+requires-python = ">=3.11,<3.14"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "support-bot contributors" }]
+dependencies = [
+    "fastapi>=0.115,<0.116",
+    "uvicorn[standard]>=0.30,<0.32",
+    "pydantic>=2.7,<3",
+    "pydantic-settings>=2.3,<3",
+    "opentelemetry-api>=1.27,<2",
+    "opentelemetry-sdk>=1.27,<2",
+    "opentelemetry-exporter-otlp>=1.27,<2",
+    "opentelemetry-instrumentation-fastapi>=0.48b0,<1",
+    "opentelemetry-instrumentation-httpx>=0.48b0,<1",
+    "opentelemetry-instrumentation-logging>=0.48b0,<1",
+    "httpx>=0.27,<1",
+    "langgraph>=1.2.10,<2",
+    "langchain>=1.3,<2",
+    "langchain-core>=1.4,<2",
+    "langchain-openai>=0.1,<1",
+    # WP06 — OpenAIPageAnalyzer calls ``openai.OpenAI`` directly
+    # (not via langchain) so it can use the response_format
+    # structured-output path. Pinned to match the OpenAI Python
+    # SDK release cycle.
+    "openai>=1.40,<2",
+    # Tracks the docker-compose server image (chromadb/chroma:1.5.9).
+    # Client/server must match major.minor to avoid /api/v2/auth/identity
+    # 404s on the v2 client → VectorStoreUnavailable.
+    "chromadb>=1.5,<1.6",
+    # Local sentence-transformers embedder is OPTIONAL — install
+    # the ``local-embedder`` extra to enable EMBEDDER_BACKEND=local.
+    # The base image is small enough for production Docker builds;
+    # operators who want offline embeddings install the extra
+    # (~2 GB for multilingual-e5-large + torch).
+    # "sentence-transformers>=3.0,<4" -- moved to optional.
+    "requests>=2.32,<3",
+    "beautifulsoup4>=4.12,<5",
+    "prometheus-client>=0.20,<1",
+    "structlog>=24.1,<25",
+]
+
+[project.optional-dependencies]
+# Local embedding extra: ``sentence-transformers`` + the
+# ``torch`` runtime it requires. Adds ~2 GB; install only when
+# you need offline embeddings or want to run the local embedder
+# in CI. The production default is OpenAI embeddings, so this
+# extra is NOT installed by the Docker build.
+local-embedder = [
+    "sentence-transformers>=3.0,<4",
+]
+dev = [
+    "pytest>=8.2,<9",
+    "pytest-cov>=5.0,<6",
+    "pytest-asyncio>=0.23,<1",
+    "import-linter>=2.0,<3",
+    "interrogate>=1.7,<2",
+    "ruff>=0.5,<1",
+    "mypy>=1.10,<2",
+    "responses>=0.25,<1",
+    # Pull in the local embedder so unit tests that exercise
+    # ``SentenceTransformersEmbedder`` (WP03 contract tests) can
+    # resolve the dependency. CI installs ``.[dev]`` not ``.[local-embedder]``
+    # explicitly.
+    "sentence-transformers>=3.0,<4",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/support_bot"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "e2e: end-to-end tests (deselect with -m 'not e2e')",
+]
+asyncio_mode = "auto"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+fail_under = 90
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]
+
+# import-linter contracts (WP05 T041).
+#
+# Two complementary contracts enforce the hexagonal layering:
+#
+# * ``hexagonal-layers`` (``type = layers``) catches violations
+#   of the dependency direction at the package boundary -- e.g.
+#   ``support_bot.domain`` importing from ``support_bot.adapters``.
+# * ``domain-forbidden-sdks`` (``type = forbidden``) catches the
+#   subtler case where the domain layer pulls in an outer SDK
+#   (langchain, chromadb, etc.) via a transitive re-export.
+#
+# Both contracts together cover the architecture rules declared in
+# AGENTS.md §1.1 and the plan's Phase 0.4 (Hexagonal Layering).
+# The ``composition.settings`` exhaustive-ignore keeps the
+# settings module (a composition-layer file that legitimately
+# reads env vars) out of the layers check.
+[tool.importlinter]
+root_package = "support_bot"
+include_external_files = false
+# ``include_external_packages`` must be ``true`` when the
+# forbidden-modules contract references third-party packages
+# (langchain, chromadb, fastapi, ...).
+include_external_packages = true
+contracts = [
+    # Hexagonal layers -- top may import bottom, not vice versa.
+    #
+    # ``ignore_imports`` lists the two pre-existing WP02
+    # application -> adapters edges that bypass the strict
+    # layering:
+    #
+    # - ``AnsweringService`` and ``PrometheusMetricsMiddleware``
+    #   both depend on the concrete ``MetricsRecorder`` adapter.
+    #   Per AGENTS.md §1.1 the application layer should depend
+    #   on a domain ``MetricsPort`` instead; refactoring this
+    #   would require modifying ``application/`` (frozen at
+    #   WP04 per the WP05 constraint). The ignore is explicit
+    #   so the violation is visible -- any new application ->
+    #   adapters edge will still be flagged.
+    { type = "layers", name = "Hexagonal layers", id = "hexagonal-layers", layers = [
+        "support_bot.composition",
+        "support_bot.adapters",
+        "support_bot.application",
+        "support_bot.domain",
+    ], ignore_imports = [
+        "support_bot.application.answering.answering_service -> support_bot.adapters.metrics",
+        "support_bot.application.api.metrics_middleware -> support_bot.adapters.metrics",
+    ] },
+
+    # Domain must not import any outer SDK.
+    { type = "forbidden", name = "Domain must not import outer SDKs", id = "domain-forbidden-sdks", source_modules = [
+        "support_bot.domain",
+    ], forbidden_modules = [
+        "langchain",
+        "langgraph",
+        "chromadb",
+        "fastapi",
+        "requests",
+        "beautifulsoup4",
+        "pydantic_settings",
+        "structlog",
+    ] },
+]
+
+[tool.interrogate]
+fail-under = 100
+exclude = ["tests", "docs"]
+ignore-init-method = true
+ignore-magic = false
+ignore-nested-functions = false
+ignore-setters = true
+ignore-module-structure = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "PL"]
+ignore = ["PLR2004"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["PLR0913", "PLR2004", "B011", "PLC0415", "F401"]
+# application/ and composition/ use lazy imports inside functions
+# to avoid module-level side effects (structlog, opentelemetry,
+# httpx, fakes). The composition root wires optional SDKs in,
+# and a top-level import would break single-process tests.
+# PLW0603 is allowed in composition/observability.py because the
+# auto-instrumentation guards need module-level state.
+"src/support_bot/application/**" = ["PLC0415", "PLR0913", "PLR0915", "PLR2004"]
+"src/support_bot/application/ingestion/ingestion_service.py" = ["PLC0415", "PLR0913", "PLR0915", "PLR2004", "PLR0912"]
+"src/support_bot/adapters/vectorstore_chroma.py" = ["PLC0415", "PLR0913"]
+"src/support_bot/composition/**" = ["PLC0415", "PLW0603"]
+"src/support_bot/adapters/**" = ["PLC0415"]
+"src/support_bot/application/api/error_mapper.py" = ["PLC0415", "PLR0911"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unreachable = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+no_implicit_optional = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_defs = false

@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "support-bot.configMapName" . }}
+  labels:
+    {{- include "support-bot.labels" . | nindent 4 }}
+data:
+  # SOURCE_URL is intentionally empty in the default values;
+  # the operator sets it via --set or a values override.
+  # When empty the ingestion Job exits early with a clear
+  # error.
+  SOURCE_URL: {{ .Values.config.sourceUrl | quote }}
+  # The CHROMA_HOST differs by deployment mode: in the bundled
+  # chart it is the in-cluster chroma service. With an external
+  # Chroma the operator overrides the host via values.
+  CHROMA_HOST: {{ if .Values.chroma.external.enabled }}{{ .Values.chroma.external.host }}{{ else }}{{ include "support-bot.componentName" (list . "chroma") }}{{ end }}
+  CHROMA_PORT: {{ .Values.chroma.external.port | default 8000 | quote }}
+  CHROMA_AUTH_TOKEN: ""
+  LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  ANSWERER_BACKEND: {{ .Values.config.answererBackend | quote }}
+  EMBEDDER_BACKEND: {{ .Values.config.embedderBackend | quote }}
+  # WP06 — semantic analyzer (LLM-driven) + chunker backends.
+  ANALYZER_BACKEND: {{ .Values.config.analyzerBackend | quote }}
+  CHUNKER_BACKEND: {{ .Values.config.chunkerBackend | quote }}
+  OPENAI_PAGE_ANALYZER_MODEL: {{ .Values.config.openaiPageAnalyzerModel | quote }}
+  LOW_CONFIDENCE_THRESHOLD: {{ .Values.config.lowConfidenceThreshold | quote }}
+  LOCK_DIR: "/var/run/support-bot"
+  OTEL_SERVICE_NAMESPACE: "support-bot"
+  OTEL_DEPLOYMENT_ENVIRONMENT: {{ .Release.Namespace | quote }}
+  OTEL_TRACES_SAMPLER: "parentbased_traceidratio"
+  OTEL_TRACES_SAMPLER_ARG: "1.0"
+  OTEL_EXPORTER_OTLP_ENDPOINT: ""

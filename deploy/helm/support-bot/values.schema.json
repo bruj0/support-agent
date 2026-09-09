@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/example/support-bot/values.schema.json",
+  "title": "support-bot Helm values",
+  "description": "JSON Schema for support-bot chart values. Enforced by Helm 3 BEFORE any template rendering, so a bad install fails fast at the client with a clear error. Resolves M7 ('bad Helm values fail at install time, not silently at runtime') from WP05 v1 review Issue 1 -- the previous pre-install-hook implementation was structurally unable to validate the Secret and ConfigMap because pre-install hooks run before any release resources exist.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["secret", "config"],
+  "properties": {
+    "secret": {
+      "description": "API keys + tokens mounted as a Kubernetes Secret. All values default to empty strings -- the operator MUST supply them at install time via --set or an external secret manager (NFR-003 / SecretScrubber).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["openaiApiKey"],
+      "properties": {
+        "openaiApiKey": {
+          "description": "OpenAI API key for the answerer adapter (WP02). Must be non-empty and look like a real OpenAI key (sk-<base62>, >=20 chars after the prefix) so that operators catch typos at install time rather than at first request.",
+          "type": "string",
+          "minLength": 23,
+          "pattern": "^sk-[A-Za-z0-9]{20,}$"
+        },
+        "embeddingApiKey": {
+          "description": "OpenAI API key for the OpenAI embedder backend. Optional -- only required when EMBEDDER_BACKEND=openai. If supplied, must follow the same sk-<base62> shape as openaiApiKey so operators catch typos. Use null (the default) when EMBEDDER_BACKEND=local.",
+          "type": ["string", "null"],
+          "minLength": 23,
+          "pattern": "^sk-[A-Za-z0-9]{20,}$"
+        },
+        "chromaAuthToken": {
+          "description": "Chroma auth token. Optional -- only required when CHROMA_AUTH_TOKEN is set in the Chroma server config. Use null (the default) for unauthenticated Chroma.",
+          "type": ["string", "null"],
+          "minLength": 1
+        }
+      }
+    },
+    "config": {
+      "description": "Application configuration mounted as a Kubernetes ConfigMap (WP04 / composition/settings.py).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceUrl"],
+      "properties": {
+        "logLevel": {
+          "description": "Application log level (DEBUG/INFO/WARNING/ERROR). Defaults to INFO in values.yaml.",
+          "type": "string",
+          "enum": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        },
+        "sourceUrl": {
+          "description": "URL the ingestion pipeline scrapes on first start (FR-001 / PageScraper port). Must be a non-empty absolute HTTP(S) URL -- the ingestion cannot scrape an empty or relative URL.",
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://.+",
+          "minLength": 8
+        },
+        "embedderBackend": {
+          "description": "Embedder implementation selector. 'local' = sentence-transformers (default), 'openai' = text-embedding-3-small.",
+          "type": "string",
+          "enum": ["local", "openai"]
+        },
+        "answererBackend": {
+          "description": "Answerer implementation selector. 'openai' = ChatOpenAI (default), 'fake' = deterministic for tests.",
+          "type": "string",
+          "enum": ["openai", "fake"]
+        },
+        "analyzerBackend": {
+          "description": "WP06 page analyzer selector. 'openai' = OpenAIPageAnalyzer (LLM-driven, default), 'none' = skip the analyze step (FixedSizeChunker fallback).",
+          "type": "string",
+          "enum": ["openai", "none"]
+        },
+        "chunkerBackend": {
+          "description": "WP06 chunker selector. 'hybrid' = HybridChunker (consumes PageStructure; default), 'fixed_size' = FixedSizeChunker (WP03 fallback).",
+          "type": "string",
+          "enum": ["fixed_size", "hybrid"]
+        },
+        "openaiPageAnalyzerModel": {
+          "description": "WP06 OpenAI chat-completions model used by the page analyzer (e.g. 'gpt-4o-mini').",
+          "type": "string",
+          "minLength": 1
+        },
+        "lowConfidenceThreshold": {
+          "description": "Cosine similarity floor below which LowConfidencePolicy refuses to answer. Pydantic v2 parses this as a string -> Decimal.",
+          "type": "string",
+          "pattern": "^0(\\.[0-9]+)?|1(\\.0+)?$"
+        }
+      }
+    }
+  }
+}

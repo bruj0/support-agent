@@ -1,0 +1,115 @@
+# Default values for support-bot.
+# Override per environment via --values values-{dev,prod}.yaml.
+
+image:
+  repository: support-bot-api
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# Resource sizing for the API pod. Sized for a small dev
+# cluster; values-prod.yaml overrides with larger requests.
+resources:
+  api:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  chroma:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Chroma vector store. The chart always co-locates Chroma
+# with the API; a separate managed Chroma is supported via
+# values overrides (chroma.external.enabled=true) but is
+# out of scope for WP05.
+chroma:
+  external:
+    enabled: false
+    host: ""
+    port: 8000
+
+# Persistent volume for Chroma data. The PVC reclaim policy
+# is set to Retain per AGENTS.md §2.4 / plan § Phase 0.
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+
+# PodDisruptionBudget: minAvailable=1 keeps at least one
+# replica during voluntary disruptions. Disabled by default
+# (set replicaCount >= 2 to enable safely).
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+# HorizontalPodAutoscaler: CPU-target based. Disabled by
+# default; values-prod.yaml enables it.
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 60
+
+# Ingress: disabled by default. values-prod.yaml enables it
+# with a placeholder host.
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: support-bot.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Configuration values that go into the ConfigMap.
+config:
+  logLevel: INFO
+  sourceUrl: ""
+  embedderBackend: local
+  answererBackend: openai
+  # WP06 — analyzer + chunker backends. ``hybrid`` consumes
+  # the analyzer output; ``openai`` drives the analyzer with
+  # gpt-4o-mini by default. Set ``analyzerBackend: none`` and
+  # ``chunkerBackend: fixed_size`` to revert to WP03 behavior.
+  analyzerBackend: openai
+  chunkerBackend: hybrid
+  openaiPageAnalyzerModel: gpt-4o-mini
+  lowConfidenceThreshold: "0.5"
+
+# Secret keys MUST be supplied at install time via --set or
+# an external secret manager (NFR-003). The values.schema.json
+# declares openaiApiKey as required (non-empty sk-<base62>);
+# embeddingApiKey and chromaAuthToken are optional and default
+# to null. The Secret template below converts null to an empty
+# stringData entry, which is correct -- the operator is
+# expected to populate the real value via --set or a sealed-secret.
+secret:
+  openaiApiKey: ""
+  embeddingApiKey: null
+  chromaAuthToken: null
+
+# Service configuration.
+service:
+  api:
+    type: ClusterIP
+    port: 8000
+  chroma:
+    type: ClusterIP
+    port: 8000
+
+# Probes: point at /healthz (FR-002 / AGENTS.md §6.7).
+probes:
+  livenessPath: /healthz
+  readinessPath: /healthz

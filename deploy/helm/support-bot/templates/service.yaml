@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "support-bot.componentName" (list . "api") }}
+  labels:
+    {{- include "support-bot.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  type: {{ .Values.service.api.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.api.port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "support-bot.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "support-bot.componentName" (list . "chroma") }}
+  labels:
+    {{- include "support-bot.labels" . | nindent 4 }}
+    app.kubernetes.io/component: chroma
+spec:
+  type: {{ .Values.service.chroma.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.chroma.port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "support-bot.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: chroma
