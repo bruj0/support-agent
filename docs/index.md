@@ -859,4 +859,4 @@ Secret scan on rendered manifests.
 
 ## License
 
-MIT (or whatever your project specifies — replace this line).
+[MIT](https://github.com/bruj0/support-agent/blob/main/LICENSE) — see [`LICENSE`](https://github.com/bruj0/support-agent/blob/main/LICENSE) for the full text.

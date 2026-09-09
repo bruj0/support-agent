@@ -865,4 +865,4 @@ Secret scan on rendered manifests.
 
 ## License
 
-MIT (or whatever your project specifies — replace this line).
+[MIT](./LICENSE) — see [`LICENSE`](./LICENSE) for the full text.
