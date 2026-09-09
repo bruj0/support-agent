@@ -1,0 +1,95 @@
+{
+  "skill": "review",
+  "version": 1,
+  "status": "implemented",
+  "wp_id": "WP05",
+  "feature_slug": "001-customer-support-rag-agent",
+  "timestamp": "2026-09-06T12:41:56.172675+00:00",
+  "previous_version": null,
+  "prose": "WP05 ships a thorough chart, a clean architecture-test layer, and a complete CI workflow. However, the pre-install hook (T046) -- the single artifact that resolves M7 (bad Helm values fail at install) -- is fundamentally broken in real Kubernetes: pre-install hooks run BEFORE any resources in the same release are created, so the hook Pod cannot start (its ServiceAccount does not exist yet) and even if it could, the Secret it tries to validate does not exist yet either. I confirmed this empirically with a kind cluster: the hook Job reaches backoffLimit=0 and the release stays in `pending-install` indefinitely. As written, M7 is NOT resolved -- a bad `helm install` does NOT fail at install time. The fix is mechanical (move value validation into `values.schema.json`, which IS enforced before any resource is created). Everything else in WP05 (helm template/lint, import-linter, architecture tests, CI workflow, README production section) passes.",
+  "reviewer": "cursor",
+  "criteria": [
+    {
+      "name": "[ ] `pytest tests/architecture -q` is green (locally).",
+      "verdict": "pass",
+      "note": "7/7 architecture tests pass: 2 import-linter contracts (hexagonal-layers, domain-forbidden-sdks), 1 sanity, and 4 helm tests (rendered manifest has all required kinds for both dev and prod; 0 literal OpenAI keys; helm lint exits 0)."
+    },
+    {
+      "name": "[ ] `helm template ./deploy/helm/support-bot --values",
+      "verdict": "pass",
+      "note": "`helm template` renders all required kinds for both values-dev.yaml and values-prod.yaml: Deployment (api), Deployment (chroma), Service (api), Service (chroma), ConfigMap, Secret, PersistentVolumeClaim, plus the ingestion Job + pre-install-hook Job + ServiceAccount + Role + RoleBinding."
+    },
+    {
+      "name": "[ ] `helm lint ./deploy/helm/support-bot` exits 0.",
+      "verdict": "pass",
+      "note": "1 chart(s) linted, 0 chart(s) failed. Only note is the cosmetic 'icon is recommended' info."
+    },
+    {
+      "name": "[ ] `uv run lint-imports` exits 0 with both contracts intact.",
+      "verdict": "pass",
+      "note": "Contracts: 2 kept, 0 broken. Hexagonal-layers contract correctly enforces `composition -> adapters -> application -> domain` direction; domain-forbidden-sdks contract correctly bans langchain/langgraph/chromadb/requests/etc. from domain/. The 2 `ignore_imports` entries are needed for the pre-existing application->adapters.metrics edges and are documented in pyproject.toml."
+    },
+    {
+      "name": "[ ] Adding `from langchain.agents import create_agent` to",
+      "verdict": "pass",
+      "note": "The forward-compat escape hatch works: adding the import to a temporary domain file correctly broke lint-imports with 'domain must not import outer SDKs' and after removal both contracts are KEPT."
+    },
+    {
+      "name": "[ ] `.github/workflows/ci.yml` runs every step above on a push.",
+      "verdict": "pass",
+      "note": "The CI workflow covers: pytest -m 'not e2e', pytest with --cov-fail-under=80, interrogate --fail-under=100, ruff check, lint-imports --no-logo, pytest tests/architecture -v, helm v3.15.0 install, helm lint, helm template kind coverage, and the Secret scan (helm template ... | grep -E 'sk-[A-Za-z0-9]{32,}')."
+    },
+    {
+      "name": "[ ] README has the production deployment section.",
+      "verdict": "pass",
+      "note": "README has a new 'Production deployment (Helm chart)' section with `helm install`, scaling notes, secret rotation, and PVC retention guidance."
+    },
+    {
+      "name": "Misfit Resolution: each misfit in misfits_addressed has a passing test",
+      "verdict": "fail",
+      "note": "M7 is NOT structurally resolved. The test `test_helm_template_renders_all_required_resources` only proves the chart RENDERS, not that bad values FAIL at install. The pre-install hook Job cannot start (its ServiceAccount doesn't exist yet) and even if it could, the Secret it validates doesn't exist yet either. Confirmed in a kind cluster: `helm install support-bot-test ... --wait` hangs in `pending-install` and the hook Job reaches backoffLimit=0 with the message 'Error creating: pods ... is forbidden: error looking up service account default/support-bot-test-pre-install-check: serviceaccount \"support-bot-test-pre-install-check\" not found'. NFR-005 (architecture test) and FR-005/FR-018 (chart renders) are resolved."
+    },
+    {
+      "name": "Subsystem Boundary Respect: no undeclared cross-subsystem coupling",
+      "verdict": "pass",
+      "note": "WP05 touches only deploy/, .github/, tests/architecture/, pyproject.toml, and README.md. No product code in domain/, application/, adapters/, or composition/ was modified. The 2 documented application->adapters.metrics ignore_imports are pre-existing edges from WP02/WP03 and are not new coupling."
+    },
+    {
+      "name": "Contract Compliance: implementation matches plan.md inter-system contracts",
+      "verdict": "pass",
+      "note": "S4 -> S1, S4 -> S3 contracts are honored: the chart ships manifests and Secrets, and the CI test gate runs the architecture tests for all subsystems."
+    },
+    {
+      "name": "No New Misfits: no new failure modes introduced without documenting them",
+      "verdict": "pass",
+      "note": "The pre-install-hook ordering problem is a failure to resolve M7 (not a new misfit). No other new failure modes introduced."
+    },
+    {
+      "name": "Build Health -- language type-checker exits 0",
+      "verdict": "pass",
+      "note": "`uv run mypy --strict src/support_bot` shows 7 pre-existing errors (all in application/services/answering_service.py and application/use_cases/ask_question.py -- Pydantic v2 + langgraph 1.2 typing edges from WP02/WP03). WP05's scope explicitly forbids touching these and the WP05 implement summary records this as build_validated: true. Ruff clean. No new errors from WP05."
+    }
+  ],
+  "issues": [
+    {
+      "id": "Issue 1",
+      "severity": "critical",
+      "title": "pre-install hook cannot validate required values (M7 not resolved)",
+      "description": "The pre-install hook Job (deploy/helm/support-bot/templates/pre-install-hook.yaml, T046) tries to validate the OPENAI_API_KEY Secret and the SOURCE_URL ConfigMap. Per the official helm hooks documentation, pre-install hooks run AFTER templates are rendered but BEFORE any resources in the same release are created. This means at hook execution time the Secret, ConfigMap, ServiceAccount, Role, and RoleBinding that the hook depends on do not exist. I verified this empirically with a real kind cluster (kindest/node:v1.28.0): `helm install support-bot-test deploy/helm/support-bot --values values-dev.yaml --set secret.openaiApiKey=sk-test1234567890abcdefghij --set config.sourceUrl=https://example.com/internet --wait` left the release in `pending-install` and the hook Job at 0/1 with backoffLimit=0 reached. The kubelet message was: `Error creating: pods \"support-bot-test-pre-install-check-\" is forbidden: error looking up service account default/support-bot-test-pre-install-check: serviceaccount \"support-bot-test-pre-install-check\" not found`. Even if the ServiceAccount were pre-installed separately, the Secret still wouldn't exist when the hook runs -- so the hook cannot validate it. As a result M7 (bad Helm values fail at install) is NOT resolved: a `helm install` with an empty OPENAI_API_KEY or empty SOURCE_URL silently hangs forever instead of failing with a clear error. This is the single acceptance criterion T046 was supposed to satisfy.",
+      "fix": "The idiomatic Helm 3 fix is to move the value validation into a `values.schema.json` file at deploy/helm/support-bot/values.schema.json. Helm validates the values against this JSON Schema BEFORE rendering any templates, so a bad install fails fast at the client (`Error: values don't meet the specifications of the schema`) without ever submitting to the cluster. Concretely, the schema should declare: (1) `secret.openaiApiKey` as required, type string, minLength 1, and a pattern matching `^sk-[A-Za-z0-9]{20,}$` to also satisfy NFR-003; (2) `config.sourceUrl` as required, type string, format uri, minLength 1; (3) optionally the optional secrets (EMBEDDING_API_KEY, CHROMA_AUTH_TOKEN) as nullable strings. With the schema in place, the entire pre-install-hook.yaml template can be deleted (along with its ServiceAccount/Role/RoleBinding that would no longer be needed), simplifying the chart from 8 to 7 templates. The T046 acceptance test (`test_helm_template_renders_all_required_resources` plus a new `test_helm_schema_rejects_empty_openai_key`) should be added. If a server-side validation artifact is required for some reason, the alternative is to switch the hook to `post-install,pre-upgrade` with a `helm.sh/hook-delete-policy: hook-succeeded` and accept that the install itself cannot be aborted from inside a hook -- but that still does not satisfy M7's 'fail at install' wording, so values.schema.json is the correct fix.",
+      "misfits": [
+        "M7"
+      ],
+      "subtasks": [
+        "WP05"
+      ],
+      "affected_files": [
+        "deploy/helm/support-bot/templates/pre-install-hook.yaml",
+        "deploy/helm/support-bot/values.schema.json (new)",
+        "tests/architecture/test_helm.py"
+      ]
+    }
+  ],
+  "dependency_notes": "",
+  "closing": "Changes requested: the pre-install hook (T046) cannot validate Secrets or ConfigMaps at install time because pre-install hooks run before any release resources are created, so M7 is not structurally resolved -- replace the hook with a values.schema.json to fail bad installs before submission."
+}

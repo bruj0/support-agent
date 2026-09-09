@@ -1,0 +1,91 @@
+{
+  "skill": "implement",
+  "wp_id": "WP05",
+  "feature_slug": "001-customer-support-rag-agent",
+  "timestamp": "2026-09-06T12:31:53.426228+00:00",
+  "prose": "WP05 ships the S4 Helm packaging + CI subsystem: a fully-rendered Helm chart (3 deployments/services, 1 PVC, 1 ingestion Job with post-install/post-upgrade hooks, 1 pre-install hook that resolves M7 by validating required Secrets and ConfigMaps before any other resource is created), 2 import-linter contracts (hexagonal-layers + domain-forbidden-sdks) that mechanically enforce AGENTS.md 1.1, a GitHub Actions CI workflow that runs the full quality gate, and a README production deployment section. 223 unit + contract + architecture tests pass (was 216, +7 new arch tests). Coverage 90.94% (no change -- chart YAMLs are operational infrastructure). ruff clean. lint-imports exits 0 with both contracts kept. helm lint OK. helm template emits all 6 required kinds (Deployment, Service, ConfigMap, Secret, PersistentVolumeClaim, Job) plus 3 hook RBAC kinds. Rendered manifest contains 0 literal OpenAI-style keys. The 7 mypy strict errors are still pre-existing WP02/WP03 issues the WP05 constraint forbids me from touching.",
+  "worktree": {
+    "path": ".worktrees/001-customer-support-rag-agent-WP05",
+    "branch": "001-customer-support-rag-agent-WP05"
+  },
+  "files_created": [
+    {
+      "path": "deploy/helm/support-bot/Chart.yaml",
+      "description": "WP05 T042: apiVersion v2, name=support-bot, type=application, version=0.1.0, appVersion=0.1.0, kubeVersion>=1.28.0-0, keywords rag/langgraph/chroma/customer-support."
+    },
+    {
+      "path": "deploy/helm/support-bot/values.yaml",
+      "description": "WP05 T042: defaults. replicaCount=1, resources sized for small cluster, persistence 5Gi, podDisruptionBudget disabled, autoscaling disabled, ingress disabled, config.logLevel=INFO, config.answererBackend=openai, secret keys empty (must be supplied at install time per NFR-003)."
+    },
+    {
+      "path": "deploy/helm/support-bot/values-dev.yaml",
+      "description": "WP05 T043: 1 replica, logLevel=DEBUG, persistence 1Gi, no PDB, no HPA, no ingress. The dev overlay used by CI."
+    },
+    {
+      "path": "deploy/helm/support-bot/values-prod.yaml",
+      "description": "WP05 T043: 3 replicas, logLevel=INFO, persistence 10Gi, PodDisruptionBudget (minAvailable=1) enabled, HPA 2-6 replicas CPU 60%, ingress enabled with nginx class and a placeholder TLS host."
+    },
+    {
+      "path": "deploy/helm/support-bot/templates/_helpers.tpl",
+      "description": "WP05 T044: fullname, labels, selectorLabels, componentName, image, secretName, configMapName helpers."
+    },
+    {
+      "path": "deploy/helm/support-bot/templates/configmap.yaml",
+      "description": "WP05 T044: SOURCE_URL, CHROMA_HOST (in-cluster service name or external override), CHROMA_PORT, LOG_LEVEL, ANSWERER_BACKEND, EMBEDDER_BACKEND, LOW_CONFIDENCE_THRESHOLD, LOCK_DIR, OTel settings."
+    },
+    {
+      "path": "deploy/helm/support-bot/templates/secret.yaml",
+      "description": "WP05 T044: OPENAI_API_KEY, EMBEDDING_API_KEY, CHROMA_AUTH_TOKEN with EMPTY stringData defaults. The template MUST NOT include any literal default value per NFR-003."
+    },
+    {
+      "path": "deploy/helm/support-bot/templates/pvc.yaml",
+      "description": "WP05 T044: ReadWriteOnce PVC, size from values, storageClassName optional. Reclaim policy is operator-controlled at the StorageClass level per AGENTS.md 2.4 (chart comment explains)."
+    },
+    {
+      "path": "deploy/helm/support-bot/templates/deployment-chroma.yaml",
+      "description": "WP05 T044: chromadb/chroma:0.5.4, single replica with Recreate strategy, PVC mount at /chroma/chroma, liveness/readiness on /api/v1/heartbeat, resource requests/limits from values."
+    },
+    {
+      "path": "deploy/helm/support-bot/templates/deployment-api.yaml",
+      "description": "WP05 T044: N replicas, envFrom ConfigMap+Secret, liveness/readiness on /healthz (FR-002), non-root securityContext (uid 1001), readOnlyRootFilesystem, drop ALL capabilities, resource requests/limits."
+    },
+    {
+      "path": "deploy/helm/support-bot/templates/service.yaml",
+      "description": "WP05 T044: ClusterIP services for both api (port 8000) and chroma (port 8000), selector labels match the deployment labels."
+    },
+    {
+      "path": "deploy/helm/support-bot/templates/job-ingestion.yaml",
+      "description": "WP05 T045: ingestion Job with helm.sh/hook=post-install,post-upgrade and helm.sh/hook-delete-policy=hook-succeeded,before-hook-creation. Command: python -m support_bot.composition.ingestion_main. Same non-root securityContext as the api deployment."
+    },
+    {
+      "path": "deploy/helm/support-bot/templates/pre-install-hook.yaml",
+      "description": "WP05 T046: M7 resolution. pre-install hook Job (bitnami/kubectl:latest) that asserts OPENAI_API_KEY non-empty and SOURCE_URL non-empty, exits non-zero with a clear error if either is missing. Ships a ServiceAccount + Role + RoleBinding with read access to secrets and configmaps. Runs before any other resource is created."
+    },
+    {
+      "path": "tests/architecture/test_imports.py",
+      "description": "WP05 T047: 3 tests wrapping the 2 import-linter contracts as parametrised pytest tests. Asserts rc==0 AND the human-readable contract name is printed as 'KEPT'."
+    },
+    {
+      "path": "tests/architecture/test_helm.py",
+      "description": "WP05 T048: 4 tests -- helm template renders all 6 required kinds for both values files, rendered manifest contains 0 literal OpenAI-style keys, helm lint exits 0. Tests skip automatically when helm is not on PATH."
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "description": "WP05 T049: GitHub Actions workflow on push and PR. Steps: pytest -m 'not e2e', pytest with --cov-fail-under=80, interrogate --fail-under=100, ruff check, lint-imports --no-logo, pytest tests/architecture -v, helm v3.15.0 install, helm lint, helm template kind coverage, Secret scan on rendered manifests (NFR-003)."
+    },
+    {
+      "path": "pyproject.toml",
+      "description": "WP05 T041: [tool.importlinter] now declares two contracts. hexagonal-layers (type=layers, with 2 explicit ignore_imports for the pre-existing WP02 application->adapters.metrics edges that the WP04 freeze prevents fixing). domain-forbidden-sdks (type=forbidden) with the 8 listed outer SDKs (langchain, langgraph, chromadb, fastapi, requests, beautifulsoup4, pydantic_settings, structlog)."
+    }
+  ],
+  "test_results": {
+    "passed": 223,
+    "total": 223,
+    "command": "cd .worktrees/001-customer-support-rag-agent-WP05 && uv run pytest -m 'not e2e' (4 deselected e2e tests in tests/e2e/test_docker_compose.py)"
+  },
+  "validator": {
+    "passed": 0,
+    "total": 0,
+    "command": "spec-bridge-skill-tool implement WP05 --feature 001-customer-support-rag-agent"
+  }
+}

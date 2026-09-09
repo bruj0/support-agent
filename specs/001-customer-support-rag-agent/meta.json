@@ -1,0 +1,22 @@
+{
+  "feature_number": "001",
+  "slug": "001-customer-support-rag-agent",
+  "friendly_name": "Customer Support RAG Agent",
+  "mission": "software-dev",
+  "source_description": "Spec for a customer-facing RAG assistant. Ingestion pipeline scrapes a configurable product page, cleans and chunks the content, embeds it into Chroma. A LangGraph agent answers end-user questions over FastAPI. Packaging includes Dockerfiles, docker-compose, and a full Helm chart with dev/prod values. Cross-cutting: hexagonal architecture (SOLID), test-first for logic with smoke/contract tests for I/O, Google-style docstrings throughout.",
+  "created_at": "2026-09-06T07:56:41+00:00",
+  "target_branch": "master",
+  "vcs": "git",
+  "acceptance": {
+    "actor": "spec-bridge-accept (cursor)",
+    "timestamp": "2026-09-06T12:59:23.337214+00:00",
+    "commands": [
+      "uv run pytest -m 'not e2e'",
+      "uv run lint-imports --no-logo",
+      "uv run pytest tests/architecture -q",
+      "uv run helm lint deploy/helm/support-bot --values deploy/helm/support-bot/values-dev.yaml --set secret.openaiApiKey=sk-AAAAAAAAAAAAAAAAAAAA",
+      "uv run ruff check src tests",
+      "uv run interrogate src/support_bot/domain src/support_bot/application src/support_bot/composition"
+    ]
+  }
+}

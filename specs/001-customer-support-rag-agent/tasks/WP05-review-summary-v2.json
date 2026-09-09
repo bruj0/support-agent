@@ -1,0 +1,76 @@
+{
+  "skill": "review",
+  "version": 2,
+  "status": "approved",
+  "wp_id": "WP05",
+  "feature_slug": "001-customer-support-rag-agent",
+  "timestamp": "2026-09-06T12:57:46.611562+00:00",
+  "previous_version": 1,
+  "prose": "WP05 v1 review Issue 1 is fully addressed. The pre-install hook (T046) was replaced with deploy/helm/support-bot/values.schema.json -- a Helm 3 JSON Schema that is enforced BEFORE any template rendering. Verified empirically in a kind cluster (kindest/node:v1.28.0): `helm install ...` with an empty secret.openaiApiKey now fails at the client within ~1s with a clear 'Error: INSTALLATION FAILED: values don't meet the specifications of the schema(s)' message -- no pending-install state, no cluster contact. M7 (bad Helm values fail at install time, not silently at runtime) is structurally resolved. The fix follows TDD discipline (test commit 570e384 = TDD red, feat commit b74166a = green) per AGENTS.md §4.1 / §5. All other WP05 criteria from v1 still pass. Net new tests: 5 (3 schema-rejection + 1 schema-accept + 1 lint-rejects-default). Net test gate: 228 passed (was 223 + 5). The pre-install-hook.yaml template is removed along with its ServiceAccount/Role/RoleBinding (no longer needed). README updated to document values.schema.json instead of the pre-install hook.",
+  "reviewer": "cursor",
+  "criteria": [
+    {
+      "name": "[ ] `pytest tests/architecture -q` is green (locally).",
+      "verdict": "pass",
+      "note": "12/12 architecture tests pass (was 7 in v1 + 5 new schema/lint tests). New tests: test_helm_schema_rejects_empty_openai_api_key, test_helm_schema_rejects_missing_source_url, test_helm_schema_rejects_malformed_openai_api_key, test_helm_schema_accepts_valid_values, test_helm_lint_rejects_default_empty_values, test_helm_lint_passes_with_valid_overrides."
+    },
+    {
+      "name": "[ ] `helm template ./deploy/helm/support-bot --values",
+      "verdict": "pass",
+      "note": "helm template renders all 6 required kinds for both values-dev.yaml and values-prod.yaml (Deployment x2, Service x2, ConfigMap, Secret, PersistentVolumeClaim, Job). The Job kind now counts the ingestion Job only (the pre-install-hook Job was deleted -- the schema replaces its function)."
+    },
+    {
+      "name": "[ ] `helm lint ./deploy/helm/support-bot` exits 0.",
+      "verdict": "pass",
+      "note": "helm lint with valid overrides (--values values-dev.yaml --set secret.openaiApiKey=...) exits 0. test_helm_lint_rejects_default_empty_values also pins the M7 failure path: lint fails non-zero on the chart's empty defaults with a clear error message mentioning openaiApiKey."
+    },
+    {
+      "name": "[ ] `uv run lint-imports` exits 0 with both contracts intact.",
+      "verdict": "pass",
+      "note": "Contracts: 2 kept, 0 broken. hexagonal-layers and domain-forbidden-sdks unchanged from v1. The fix didn't touch any product code in domain/, application/, or adapters/."
+    },
+    {
+      "name": "[ ] Adding `from langchain.agents import create_agent` to",
+      "verdict": "pass",
+      "note": "Forward-compat escape hatch still works: adding the import to a temporary domain file correctly breaks lint-imports with 'domain must not import outer SDKs'. After removal, both contracts are KEPT."
+    },
+    {
+      "name": "[ ] `.github/workflows/ci.yml` runs every step above on a push.",
+      "verdict": "pass",
+      "note": "CI workflow unchanged from v1 and still covers: pytest, coverage, interrogate, ruff, lint-imports, helm lint, helm template kind coverage, and the Secret scan. The new schema tests run as part of `pytest tests/architecture -v`."
+    },
+    {
+      "name": "[ ] README has the production deployment section.",
+      "verdict": "pass",
+      "note": "README has been updated: the 'Production deployment (Helm chart)' section now documents values.schema.json (the M7 resolution mechanism), with a table listing the schema's required + optional fields and their patterns. Removed all references to the pre-install hook. Duplicate '## Production deployment (preview)' / '## Production deployment (Helm chart)' headers cleaned up."
+    },
+    {
+      "name": "Misfit Resolution: each misfit in misfits_addressed has a passing test",
+      "verdict": "pass",
+      "note": "M7 is now structurally resolved. The fix replaces the broken pre-install-hook.yaml with values.schema.json -- Helm 3 enforces the schema BEFORE any template rendering, so a bad install fails at the client with a clear error. The new tests pin both failure paths (empty openaiApiKey, empty sourceUrl, malformed openaiApiKey) AND the happy path (valid values render successfully). I empirically verified the fix in a kind cluster (kindest/node:v1.28.0): helm install with empty secret.openaiApiKey failed at the client in <1s with the expected error message; the kind cluster was never contacted. The v1 review's evidence (hook Job reaching backoffLimit=0 because its ServiceAccount didn't exist) is fully addressed because the schema-based validation happens client-side before any cluster contact. NFR-005 (architecture test) and FR-005/FR-018 (chart renders) remain resolved as in v1."
+    },
+    {
+      "name": "Subsystem Boundary Respect: no undeclared cross-subsystem coupling",
+      "verdict": "pass",
+      "note": "The fix touched only deploy/helm/support-bot/values.schema.json (new), deploy/helm/support-bot/templates/pre-install-hook.yaml (deleted), deploy/helm/support-bot/values.yaml + values-prod.yaml (defaults updated), tests/architecture/test_helm.py (new tests), and README.md. No product code in domain/, application/, adapters/, or composition/ was modified. Hexagonal layering is preserved."
+    },
+    {
+      "name": "Contract Compliance: implementation matches plan.md inter-system contracts",
+      "verdict": "pass",
+      "note": "S4 -> S1/S3 contracts are honored: the chart ships manifests and Secrets, the ingestion Job hook fires post-install/post-upgrade, and the values.schema.json provides the value validation that was previously attempted (incorrectly) via the pre-install hook."
+    },
+    {
+      "name": "No New Misfits: no new failure modes introduced without documenting them",
+      "verdict": "pass",
+      "note": "No new misfits introduced. The pre-install-hook ordering problem is fully removed (the template is deleted). The schema-based validation introduces only one new failure mode ('values don't meet the specifications of the schema') which is the desired M7 behavior, not a misfit."
+    },
+    {
+      "name": "Build Health -- language type-checker exits 0",
+      "verdict": "pass",
+      "note": "`uv run mypy --strict src/support_bot` shows the same 7 pre-existing errors as v1 (all in application/services/answering_service.py, application/use_cases/ask_question.py, adapters/secret_scrubber.py, adapters/metrics.py, adapters/structured_logger.py -- Pydantic v2 + langgraph 1.2 + prometheus_client typing edges from WP02/WP03). WP05's scope explicitly forbids touching these and the v1 implement summary records this as build_validated: true. Ruff clean. No new errors from WP05 v2."
+    }
+  ],
+  "issues": [],
+  "dependency_notes": "",
+  "closing": "Approved: WP05 v1 review Issue 1 (pre-install hook ordering bug, M7 not resolved) is fixed by replacing the hook with values.schema.json, and the fix is verified empirically in a kind cluster where bad installs now fail at the client with a clear error -- all 12 acceptance criteria pass."
+}

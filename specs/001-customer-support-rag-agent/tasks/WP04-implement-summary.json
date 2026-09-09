@@ -1,0 +1,75 @@
+{
+  "skill": "implement",
+  "wp_id": "WP04",
+  "feature_slug": "001-customer-support-rag-agent",
+  "timestamp": "2026-09-06T12:06:23.483413+00:00",
+  "prose": "WP04 ships the docker-compose integration WP: a 3-service stack (chroma 0.5.4 sidecar, api, ingestion-on-profile), the production AnsweringService factory wiring the new OPENAIAnswerGenerator + ThresholdLowConfidencePolicy adapters, a 4-test e2e suite (skipped by default), the four required README sections, and the two architecture diagrams. 213 unit/contract tests pass, coverage is 88.47% (gate 80% cleared), ruff clean, lint-imports clean. The 7 remaining mypy strict errors are pre-existing WP02/WP03 issues in files the WP04 constraint forbids me from touching. TDD pair (test + feat) shipped for the two new production adapters so the prior review pattern holds.",
+  "worktree": {
+    "path": ".worktrees/001-customer-support-rag-agent-WP04",
+    "branch": "001-customer-support-rag-agent-WP04"
+  },
+  "files_created": [
+    {
+      "path": "src/support_bot/adapters/answerer_openai.py",
+      "description": "OPENAIAnswerGenerator: production AnswerGenerator adapter (lazy OpenAI client, gpt-4o-mini default, provider-error and timeout -> LLMUnavailable, OTel adapter.answerer.generate span with question_text_hash, DEBUG/INFO adapter.call.start/ok logs). FR-001/FR-008/FR-009, AGENTS.md 6.4 PII rule."
+    },
+    {
+      "path": "src/support_bot/adapters/low_confidence_policy.py",
+      "description": "ThresholdLowConfidencePolicy: production LowConfidencePolicy adapter (refuses on empty retrieval OR top-1 similarity strictly below threshold; default 0.5; refusal_message() returns the spec FR-009 string verbatim)."
+    },
+    {
+      "path": "src/support_bot/composition/production_factory.py",
+      "description": "Production wiring factory: select_embedder/select_vectorstore/select_retriever/select_answer_generator/select_low_confidence_policy + build_answering_service + create_production_answering_service. Rejects embedder_backend/answerer_backend='fake' (AGENTS.md 1.1: production never imports from tests/fakes/*). Used as create_app(answering_service_factory=create_production_answering_service)."
+    },
+    {
+      "path": "docker/api.Dockerfile",
+      "description": "Multi-stage uv-based Dockerfile for the API service (WP04 T033): python:3.11.9-slim-bookworm, non-root app user, EXPOSE 8000, ENTRYPOINT deploy/start.sh."
+    },
+    {
+      "path": "deploy/start.sh",
+      "description": "Container entrypoint: exec uvicorn with the create_app factory on 0.0.0.0:8000."
+    },
+    {
+      "path": "deploy/docker-compose.yml",
+      "description": "WP04 T034: 3 services (chroma 0.5.4 + healthcheck, api with env_file + healthcheck, ingestion with profile=ingest). chroma_data volume, support_net bridge network."
+    },
+    {
+      "path": ".env.example",
+      "description": "WP04 T035: every Settings field documented with comments and placeholders (OPENAI_API_KEY uses short sk-REPLACE_ME so it never matches the SecretScrubber regex)."
+    },
+    {
+      "path": "tests/e2e/test_docker_compose.py",
+      "description": "WP04 T036: 4 e2e tests behind the e2e marker (deselected by default). Module-level fixture brings the stack up and down; tests cover /healthz, SC-001 happy path, SC-001 refusal path, /metrics."
+    },
+    {
+      "path": "tests/adapters/test_openai_answer_generator.py",
+      "description": "TDD red phase for OPENAIAnswerGenerator: 5 tests (returns content, default model, forwards question, provider-error -> LLMUnavailable, timeout -> LLMUnavailable)."
+    },
+    {
+      "path": "tests/adapters/test_threshold_low_confidence_policy.py",
+      "description": "TDD red phase for ThresholdLowConfidencePolicy: 7 tests (empty retrieval, top-1 below threshold, top-1 at threshold does NOT refuse, top-1 above, refusal_message matches spec FR-009 string verbatim, default threshold is sensible, custom threshold is respected)."
+    },
+    {
+      "path": "README.md",
+      "description": "WP04 T037: 4 required sections (docker-compose workflow, model rationale, LangGraph workflow design, AWS view) plus project layout + production deployment preview + license. Includes embedded Mermaid previews of the architecture diagrams."
+    },
+    {
+      "path": "docs/architecture/local-flow.mmd",
+      "description": "WP04 T038: Mermaid diagram of the ask flow + ingestion side branch with subgraph grouping."
+    },
+    {
+      "path": "docs/architecture/aws-flow.mmd",
+      "description": "WP04 T039: Mermaid diagram of the AWS production target (Route 53 -> ALB -> EKS -> OpenAI + Chroma EBS PVC + OTel + Prometheus + IRSA/Secrets Manager)."
+    }
+  ],
+  "test_results": {
+    "passed": 213,
+    "total": 213,
+    "command": "cd .worktrees/001-customer-support-rag-agent-WP04 && uv run pytest -m 'not e2e' (4 deselected e2e tests in tests/e2e/test_docker_compose.py)"
+  },
+  "validator": {
+    "passed": 0,
+    "total": 0,
+    "command": "spec-bridge-skill-tool implement WP04 --feature 001-customer-support-rag-agent"
+  }
+}

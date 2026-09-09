@@ -1,0 +1,71 @@
+{
+  "skill": "implement",
+  "wp_id": "WP03",
+  "feature_slug": "001-customer-support-rag-agent",
+  "timestamp": "2026-09-06T11:45:42.734196+00:00",
+  "prose": "WP03 ships the full ingestion pipeline end-to-end. 13 TDD-disciplined commits on the WP branch (paired test + feat) plus a final gate-fix commit. All four misfits addressed: M1 (URL unreachable -> vectorstore never written), M2 (empty cleaned text -> validator rejects), M4 (concurrent run -> second run skipped). Single-ID propagation (AGENTS.md §6.3) flows from the active OTel span's 'request.id' attribute through every log line, every child span, and the lock filename. OpenTelemetry spans wrap every LangGraph node (this WP), every adapter call, and every ingestion step with the AGENTS.md 6.4 mandatory attributes.",
+  "worktree": {
+    "path": ".worktrees/001-customer-support-rag-agent-WP03",
+    "branch": "001-customer-support-rag-agent-WP03"
+  },
+  "files_created": [
+    {
+      "path": "src/support_bot/adapters/http_source.py",
+      "description": "RequestsPageScraper adapter (T021): requests.get with User-Agent header, translates non-2xx/timeout/empty-body into SourcePageUnreachable. OTel span adapter.page_scraper.fetch + adapter.call.start/ok logs."
+    },
+    {
+      "path": "src/support_bot/adapters/cleaner.py",
+      "description": "BoilerplatePageCleaner adapter (T022): BeautifulSoup-based boilerplate stripper (nav/footer/header/aside/cookie banners/script/style/noscript). Raises SourcePageGarbage when cleaned text < min_text_length (M2 second line of defence)."
+    },
+    {
+      "path": "src/support_bot/adapters/chunker.py",
+      "description": "FixedSizeChunker adapter (T023): sliding window of chunk_size characters with overlap overlap. Produces stable chunk_id via Chunk.from_text for FR-012 idempotency."
+    },
+    {
+      "path": "src/support_bot/adapters/embedding_local.py",
+      "description": "SentenceTransformersEmbedder adapter (T024): lazy-loaded sentence-transformers model, default all-MiniLM-L6-v2 (384 dims). OTel span adapter.embedder.embed with embedder.backend='local'."
+    },
+    {
+      "path": "src/support_bot/adapters/embedding_openai.py",
+      "description": "OpenAIEmbedder adapter (T025): opt-in alternative via EMBEDDER_BACKEND=openai, default model text-embedding-3-small. Translates provider errors and timeouts into EmbedderUnavailable."
+    },
+    {
+      "path": "src/support_bot/adapters/vectorstore_chroma.py",
+      "description": "ChromaVectorStore + ChromaRetriever adapters (T026): wraps chromadb.HttpClient lazily (no client at construction). VectorStore protocol: upsert/delete_by_source/count/query. Query returns RetrievedChunk with similarity = 1 - distance (clamped to [0, 1]). Retriever combines VectorStore + injected Embedder."
+    },
+    {
+      "path": "src/support_bot/application/ingestion/__init__.py",
+      "description": "Package marker for the ingestion-application use-case layer."
+    },
+    {
+      "path": "src/support_bot/application/ingestion/pre_embed_validator.py",
+      "description": "PreEmbedValidator (T027): defence-in-depth check at the application boundary. Rejects cleaned pages shorter than min_cleaned_length with SourcePageGarbage (M2)."
+    },
+    {
+      "path": "src/support_bot/application/ingestion/ingestion_lock.py",
+      "description": "FileLockIngestionRunLock (T028): TTL-keyed file lock at <lock_dir>/<request_id>.lock for concurrent-run protection (M4). Stale locks auto-heal after ttl_seconds."
+    },
+    {
+      "path": "src/support_bot/application/ingestion/ingestion_service.py",
+      "description": "IngestionService orchestrator (T029): top-level run(source_url, *, request_id) wires scraper -> cleaner -> validator -> chunker -> embedder -> vectorstore. One OTel span per step (ingestion.run + ingestion.fetch/clean/validate/chunk/embed/upsert). All carry request.id (AGENTS.md §6.3). Lock acquire in try, release in finally. Misfit paths re-raise without writing the vectorstore."
+    },
+    {
+      "path": "src/support_bot/composition/ingestion_main.py",
+      "description": "CLI entry point for the Helm post-install Job (T030). Calls init_tracing first, wires adapters via select_* helpers, prints one JSON line to stdout on success/skip."
+    },
+    {
+      "path": "docker/ingestion.Dockerfile",
+      "description": "Multi-stage Dockerfile (T031): builder stage installs uv + locked dependencies + builds wheel; runtime stage copies wheel, switches to non-root 'app' user, sets ENTRYPOINT to python -m support_bot.composition.ingestion_main."
+    }
+  ],
+  "test_results": {
+    "passed": 201,
+    "total": 201,
+    "command": "uv run pytest -q --tb=no (in .worktrees/001-customer-support-rag-agent-WP03)"
+  },
+  "validator": {
+    "passed": 11,
+    "total": 12,
+    "command": "spec-bridge-skill-tool implement WP03 -f 001-customer-support-rag-agent --session-id $SESSION_ID"
+  }
+}
