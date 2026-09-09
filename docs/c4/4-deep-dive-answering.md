@@ -36,9 +36,9 @@ flowchart TD
     GEN -.uses.-> GEN2
     EDGE -.uses.-> POL
 
-    classDef node fill:#1e40af,stroke:#93c5fd,color:#ffffff;
-    classDef edge fill:#9a3412,stroke:#fdba74,color:#ffffff;
-    classDef ext fill:#374151,stroke:#d1d5db,color:#ffffff;
+    classDef node fill:#1e40af,stroke:#1e3a8a,color:#ffffff;
+    classDef edge fill:#9a3412,stroke:#7c2d12,color:#ffffff;
+    classDef ext fill:#475569,stroke:#1e293b,color:#ffffff;
     class RET,GUARD,GEN,REF node;
     class EDGE edge;
     class RETR,GEN2,POL ext;
