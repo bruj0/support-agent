@@ -1,10 +1,12 @@
 /* Mermaid diagram theming.
-   Pattern from the mkdocs-c4-site skill: drive Mermaid's colors through
-   Material's --md-mermaid-* CSS variables. The diagram surface itself is
-   always a light card so node fills/strokes stay readable in both light and
-   dark mode -- the page background changes, the diagram surface doesn't.
-   This avoids the inline-style-vs-CSS conflict that defeats Mermaid theme
-   overrides. */
+   Pin the diagram surface to a light card so the diagram is a self-contained
+   canvas that reads cleanly in both Material light and dark schemes. The
+   node fills (#1e40af / #9a3412 / #475569 with white text) and edge color
+   (#1c2d3e) are chosen for high contrast against #ffffff in both schemes.
+
+   We deliberately do NOT override `.mermaid .nodeLabel` here -- the classDef
+   in the diagram source sets `color:#ffffff` via inline style on the SVG,
+   and any class-level override would race with that. Let the source win. */
 
 :root {
   --md-mermaid-edge-color: #1c2d3e;
@@ -22,20 +24,19 @@
   --md-mermaid-node-fg-color: #1c2d3e;
 }
 
-/* Pin the diagram surface to a light card in both themes -- the node
-   colors below assume a light backdrop. Without this, slate-mode users
-   see the dark page bleed through the diagram and lose contrast. */
+/* Pin the diagram surface to a light card in both themes. Without this,
+   slate-mode users see the dark page bleed through the diagram and lose
+   contrast on mid-tone node fills. */
 .mermaid {
   background-color: #ffffff;
   border-radius: 6px;
   padding: 8px;
 }
 
-/* Force node labels and text to a dark color that pairs with the light
-   card background. classDef `color:#ffffff` rules in the diagram source
-   win here because they're applied as inline styles on the SVG. */
-.mermaid .nodeLabel,
-.mermaid .nodeLabel p,
-.mermaid foreignObject div {
+/* Edge labels stay legible on the white card -- they don't have classDef
+   fills in the diagram source, so we paint them explicitly. */
+.mermaid .edgeLabel,
+.mermaid .edgeLabel rect {
+  fill: #ffffff !important;
   color: #1c2d3e !important;
 }
