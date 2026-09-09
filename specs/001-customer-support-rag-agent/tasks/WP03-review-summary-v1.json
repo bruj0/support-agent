@@ -1,0 +1,76 @@
+{
+  "skill": "review",
+  "version": 1,
+  "status": "approved",
+  "wp_id": "WP03",
+  "feature_slug": "001-customer-support-rag-agent",
+  "timestamp": "2026-09-06T11:47:59.308020+00:00",
+  "previous_version": null,
+  "prose": "WP03 ships the full ingestion pipeline end-to-end against all four misfit paths and AGENTS.md §6.3 single-ID propagation. 20 TDD-disciplined commits on the WP03 branch (off WP02) plus the implement-validation commit on main. The hexagonal layering holds: domain imports only stdlib, application imports domain, adapters wrap SDKs at the boundary. Composition never pulls from tests/fakes/* (the fake embedder is injected via a kwarg seam). OpenTelemetry spans wrap every step with the AGENTS.md §6.4 mandatory attributes; one request_id flows through every log line, every span, the lock filename, and the bootstrap output. Two minor issues found that do not block approval: (1) the IngestionService.run debug log on the lock-release failure path is rate-noisy if releases fail repeatedly, and (2) the ingestion_main pytest tests assert a path-only import (the test monkeypatches build_service, never imports a real adapter — verified by the post-red diff).",
+  "reviewer": "spec-bridge-review",
+  "criteria": [
+    {
+      "name": "[ ] `pytest tests/application/ingestion tests/adapters -q` is",
+      "verdict": "pass",
+      "note": "84 tests pass in scope; 201/201 total."
+    },
+    {
+      "name": "[ ] `pytest --cov=src/support_bot/application/ingestion",
+      "verdict": "pass",
+      "note": "88% line coverage on application/ingestion + adapters (gate >=70%)."
+    },
+    {
+      "name": "[ ] `interrogate --fail-under 100` is green on the new files.",
+      "verdict": "pass",
+      "note": "100% on all WP03 new files. WP02's pre-existing secret_scrubber has 1 missing docstring (out of scope)."
+    },
+    {
+      "name": "[ ] `docker build -f docker/ingestion.Dockerfile -t",
+      "verdict": "pass",
+      "note": "support-bot/ingestion:dev image built (6.55 GB); multi-stage non-root; runtime USER app."
+    },
+    {
+      "name": "[ ] No code in `application/ingestion/` imports from",
+      "verdict": "pass",
+      "note": "git grep confirms no chromadb/requests/bs4 imports in application/. OTel is lazy-imported inside function bodies."
+    },
+    {
+      "name": "[ ] `IngestionService.run` uses the parameter name",
+      "verdict": "pass",
+      "note": "run(source_url, *, request_id) confirmed in test_run_emits_one_request_id_across_all_logs."
+    },
+    {
+      "name": "[ ] Every DEBUG log line in the ingestion path carries enough",
+      "verdict": "pass",
+      "note": "test_run_debug_log_carries_reproducible_inputs asserts each adapter.call.start line carries counts/sizes and never raw text."
+    },
+    {
+      "name": "Misfit Resolution: each misfit in misfits_addressed has a passing test",
+      "verdict": "pass",
+      "note": "M1/M2/M4 each have a dedicated passing test in tests/application/ingestion/test_failure_injection.py + test_ingestion_service.py."
+    },
+    {
+      "name": "Subsystem Boundary Respect: no undeclared cross-subsystem coupling",
+      "verdict": "pass",
+      "note": "IngestionService only touches the domain ports (Protocol structural types); adapter SDKs (chromadb, requests, beautifulsoup4) are imported only in adapters/."
+    },
+    {
+      "name": "Contract Compliance: implementation matches plan.md inter-system contracts",
+      "verdict": "pass",
+      "note": "S1 -> S2 VectorStore contract holds: VectorStore.query returns list[RetrievedChunk] (already in WP01); ingestion upsert path is atomic from the caller's perspective."
+    },
+    {
+      "name": "No New Misfits: no new failure modes introduced without documenting them",
+      "verdict": "pass",
+      "note": "All failure modes (unreachable URL, empty cleaned text, lock held, vectorstore connection error) are mapped to existing typed exceptions; no silent fallbacks."
+    },
+    {
+      "name": "Build Health -- language type-checker exits 0",
+      "verdict": "pass",
+      "note": "uv run mypy --strict on 11 WP03 source files: 'Success: no issues found'."
+    }
+  ],
+  "issues": [],
+  "dependency_notes": "",
+  "closing": "WP03 approved: all 12 acceptance criteria pass; 201/201 tests green; 88% coverage; interrogate 100% on new files; mypy strict clean; ruff clean; outer-SDK scan OK; docker image built; branch isolation clean."
+}

@@ -1,0 +1,219 @@
+{
+  "skill": "review",
+  "version": 1,
+  "status": "implemented",
+  "wp_id": "WP01",
+  "feature_slug": "001-customer-support-rag-agent",
+  "timestamp": "2026-09-06T09:18:29.404085+00:00",
+  "previous_version": null,
+  "prose": "Reviewed WP01 in the worktree at .worktrees/001-customer-support-rag-agent-WP01. Build health (mypy --strict), pytest (41/41), coverage on src/support_bot/domain (100%), interrogate (100% docstrings), ruff, and the manual outer-SDK scan in domain/ all pass. The structural work (domain entities, ports, errors, fakes) is sound: hexagonal boundaries hold, immutability is enforced via Pydantic frozen=True on entities, the exception hierarchy carries the right payload fields, and Chunk.from_text produces stable sha1-based ids as required by FR-012. However, three WP01 acceptance criteria are not met: (1) the port-conformance test file claimed in the implement summary does not exist on disk and the per-port failure-injection TDD targets (M1/M2/M6) are missing; (2) import-linter is installed but not configured in either pyproject.toml or .importlinter, contradicting the explicit acceptance clause; (3) the TDD 'tests committed before implementations' clause is violated by the single-commit history because the whole WP landed in one feat commit. A fourth major design question (VectorStore.query returns Chunk not RetrievedChunk) requires a contract decision before WP02/WP03 can run safely. Two minor doc/spec wording drifts are also flagged. The code itself is high-quality; the gaps are around meta-discipline (test inventory, tooling config, commit granularity) and one downstream design clarification.",
+  "reviewer": "spec-bridge-review",
+  "criteria": [
+    {
+      "name": "[ ] `uv sync --extra dev` succeeds on a clean checkout.",
+      "verdict": "pass",
+      "note": "uv sync succeeds in a fresh worktree; venv resolves all 12 dependencies."
+    },
+    {
+      "name": "[ ] `pytest tests/domain tests/fakes -q` is green.",
+      "verdict": "pass",
+      "note": "41 passed in ~0.06s."
+    },
+    {
+      "name": "[ ] `pytest --cov=src/support_bot/domain --cov-fail-under=90 -q` is green.",
+      "verdict": "pass",
+      "note": "100% line coverage on domain/ via the CLI flag --cov-fail-under=90."
+    },
+    {
+      "name": "[ ] `interrogate --fail-under 100 src/support_bot/domain` is green.",
+      "verdict": "pass",
+      "note": "RESULT: PASSED (minimum: 100.0%, actual: 100.0%)."
+    },
+    {
+      "name": "[ ] `import-linter` is configured (config lives in `pyproject.toml` or `.importlinter`) but does not yet fail",
+      "verdict": "fail",
+      "note": "See Issue 3. The package is installed as a dev dep but no [tool.importlinter] table exists in pyproject.toml and no .importlinter file exists in the worktree. The acceptance criterion explicitly requires the configuration to be present."
+    },
+    {
+      "name": "[ ] All TDD targets above are passing tests.",
+      "verdict": "fail",
+      "note": "See Issue 1 and Issue 2. Only the LowConfidencePolicy foundation TDD target is wired (test_low_confidence_policy_foundation.py). The M1/M2 (FakePageScraper.fail_next) and M6 (FakeVectorStore.fail_next) TDD targets claimed in the prompt are absent. The port-conformance tests (isinstance + inspect.signature assertions) are entirely missing."
+    },
+    {
+      "name": "[ ] No code in `domain/` imports from `langchain`, `langgraph`, `chromadb`, `fastapi`, `requests`, `beautifulsoup4`, `pydantic-settings`, or `structlog`",
+      "verdict": "pass",
+      "note": "git grep scan returns zero matches in src/support_bot/domain/."
+    },
+    {
+      "name": "[ ] Commit log shows tests committed **before** their corresponding implementations",
+      "verdict": "fail",
+      "note": "See Issue 4. Only one feature commit (22a4b84) plus a cleanup commit (99e3218); the entire domain/ and tests/ tree lands in 22a4b84. Visible TDD ordering cannot be inferred from the commit log."
+    },
+    {
+      "name": "Misfit Resolution: each misfit in misfits_addressed has a passing test",
+      "verdict": "partial",
+      "note": "M3 has a passing foundation test (StubLowConfidencePolicy refuses empty retrieval + correct refusal message). M3 Pydantic (Confidence Literal) has a passing test (test_confidence_rejects_invalid_value). M1/M2 has a partial test (FakePageScraper raises SourcePageUnreachable when no canned page is configured) but the fail_next=True injection test is absent. M6 has no fail_next=True injection test for FakeVectorStore. M4 (lock interface) and M8 (policy interface) are implicit in the port shapes; no specific test targets."
+    },
+    {
+      "name": "Subsystem Boundary Respect: no undeclared cross-subsystem coupling",
+      "verdict": "pass",
+      "note": "domain/ has zero outer-SDK imports and depends only on pydantic and typing. application/, adapters/, composition/ do not yet exist. No coupling violations possible at this layer."
+    },
+    {
+      "name": "Contract Compliance: implementation matches plan.md inter-system contracts",
+      "verdict": "partial",
+      "note": "See Issue 8. The Retriever port contract (plan Phase 0.5) matches. The LowConfidencePolicy port contract matches (should_refuse + refusal_message). The VectorStore port returns list[Chunk] from query, but the Retriever port (separate) returns list[RetrievedChunk]. The two must be unified before WP03 lands the Chroma adapter -- otherwise the Chroma adapter will have an awkward Chunk->RetrievedChunk bridge with no similarity field."
+    },
+    {
+      "name": "No New Misfits: no new failure modes introduced without documenting them",
+      "verdict": "pass",
+      "note": "No new failure modes introduced. The 7 typed exceptions match the 7 listed in the plan's Inter-System Contracts section. The FakeEmbedder reusing LLMUnavailable is documented in its docstring, not introduced silently."
+    },
+    {
+      "name": "Build Health -- language type-checker exits 0",
+      "verdict": "pass",
+      "note": "mypy --strict src/support_bot/domain: Success: no issues found in 9 source files."
+    }
+  ],
+  "issues": [
+    {
+      "id": "Issue 1",
+      "severity": "major",
+      "title": "tests/fakes/test_port_conformance.py is missing",
+      "description": "The WP01 prompt T010 required a tests/fakes/test_port_conformance.py file containing three classes of port-conformance tests: isinstance check, inspect.signature match, and failure injection. The implement summary claims the file was created, but `git ls-files tests/fakes/` shows it does not exist on disk. As a result, plan Phase 0.5 checklist item 2 (single source of truth that fakes can stand in for production adapters) has no automated enforcement, and the M1/M2 / M6 failure-injection TDD targets are absent. Without these tests, a future WP that changes a port signature will not be caught at the unit-test layer.",
+      "fix": "Create tests/fakes/test_port_conformance.py containing, for every Port in domain/answering/ports.py and domain/ingestion/ports.py: (a) isinstance(fake, Port) assertion, (b) one test per port method that compares inspect.signature(fake.method) to inspect.signature(Port.method), and (c) one test that asserts fail_next=True triggers the documented typed exception (FakePageScraper -> SourcePageUnreachable, FakeVectorStore -> VectorStoreUnavailable, FakeRetriever -> VectorStoreUnavailable / EmptyRetrieval depending on which dial, FakeEmbedder -> LLMUnavailable, FakeAnswerGenerator -> LLMUnavailable). The inspect.signature matching is the single source of truth that the fakes can stand in for the production adapters.",
+      "misfits": [
+        "M1",
+        "M2",
+        "M6"
+      ],
+      "subtasks": [],
+      "affected_files": [
+        "tests/fakes/test_port_conformance.py"
+      ]
+    },
+    {
+      "id": "Issue 2",
+      "severity": "major",
+      "title": "Failure-injection TDD targets for M1/M2 and M6 are absent",
+      "description": "The WP01 prompt lists four misfit-derived TDD targets that must be passing tests before the corresponding implementations: M3 foundation, M3 Pydantic, M6 foundation, M1/M2 foundation. Only two have tests (M3 foundation in test_low_confidence_policy_foundation.py; M3 Pydantic in test_answering_entities.py::test_confidence_rejects_invalid_value). The M6 foundation TDD target (FakeVectorStore.fail_next -> VectorStoreUnavailable) and the M1/M2 foundation TDD target (FakePageScraper.fail_next -> SourcePageUnreachable) are not present. Both fakes implement the failure-injection behaviour correctly, but the assertions are missing so the misfit-derived guarantee is not enforced.",
+      "fix": "Add the two specific tests at the path given in the WP01 prompt TDD Targets section: tests/fakes/test_page_scraper.py::test_fail_next_raises_unreachable and tests/fakes/test_vectorstore.py::test_fail_next_raises. These tests commit first (red), then are made green by the existing FakePageScraper and FakeVectorStore implementations. Note: tests/fakes/ layout may need to be expanded to per-fake test files if not already.",
+      "misfits": [
+        "M1",
+        "M2",
+        "M6"
+      ],
+      "subtasks": [],
+      "affected_files": [
+        "tests/fakes/test_page_scraper.py",
+        "tests/fakes/test_vectorstore.py"
+      ]
+    },
+    {
+      "id": "Issue 3",
+      "severity": "major",
+      "title": "import-linter is not configured",
+      "description": "The WP01 acceptance criterion says: 'import-linter is configured (config lives in pyproject.toml or .importlinter) but does not yet fail because no adapters exist yet -- leave the contracts empty for now; WP05 fills them.' The package is installed as a dev dep (pyproject.toml line 31, uv.lock resolves import-linter 2.15) but no [tool.importlinter] table exists in pyproject.toml and no .importlinter file exists in the worktree. WP05 will need to start from a clean slate rather than filling in the contracts left by WP01. This also leaves the `git grep` outer-SDK scan as the only layer-enforcement artefact; a future WP that introduces a wrong import would only be caught by manual review.",
+      "fix": "Add a [tool.importlinter] table to pyproject.toml with at minimum an empty `contracts = []` list and the type='forbidden' / 'independent' packages='src.support_bot.domain' / 'src.support_bot.application' / 'src.support_bot.adapters' / 'src.support_bot.composition' skeleton so that the tool is wired. Equivalent alternative: create a .importlinter file with the same skeleton. Either form satisfies the WP01 acceptance criterion; WP05 will fill in the concrete contracts.",
+      "misfits": [],
+      "subtasks": [],
+      "affected_files": [
+        "pyproject.toml"
+      ]
+    },
+    {
+      "id": "Issue 4",
+      "severity": "major",
+      "title": "TDD commit ordering not visible in git history",
+      "description": "The WP01 acceptance criterion says: 'Commit log shows tests committed before their corresponding implementations.' The actual history has only two product commits on the WP branch: 22a4b84 (containing every domain/ + tests/ file), and 99e3218 (a .gitignore cleanup removing accidentally-committed __pycache__). Visible TDD ordering is therefore not present. Per the WP01 prompt this is a SYDD-mandated discipline: 'This is a failing test when first written -- it commits before the policy stub is implemented, per the test-first mandate (FR-007).'",
+      "fix": "Split 22a4b84 into a sequence of commits that pairs each failing test with its implementation: (a) 'test(domain): import smoke tests' + 'feat(domain): module skeletons'; (b) 'test(domain): Chunk stable id + similarity clamp + Pydantic literal' + 'feat(domain): entity classes'; (c) 'test(fakes): StubLowConfidencePolicy refuses empty (M3)' + 'feat(fakes): StubLowConfidencePolicy'; (d) one pair per port (M1/M2 page scraper, M6 vector store); (e) 'test(domain): error hierarchy' + 'feat(domain): error hierarchy'. Use `git reset --soft HEAD~1` then `git add -p` to decompose, or rewrite history with `git rebase -i HEAD~2` after rebasing the cleanup commit.",
+      "misfits": [
+        "M3",
+        "M6"
+      ],
+      "subtasks": [],
+      "affected_files": []
+    },
+    {
+      "id": "Issue 5",
+      "severity": "minor",
+      "title": "__pycache__ committed in the feature commit and cleaned up later",
+      "description": "The feature commit 22a4b84 contains 22 __pycache__/*.pyc files. The cleanup commit 99e3218 added .gitignore and ran `git rm --cached` for each pyc, leaving the working tree clean. While the current tree is not affected, the first commit's object graph remains noisy and any future `git checkout 22a4b84` would re-introduce the stale pyc files. This is the kind of regression history that complicates future debugging.",
+      "fix": "Option A (preferred): rewrite 22a4b84 to drop the __pycache__ files using `git filter-branch` against the single SHA, then reorder the commits per Issue 4. Option B: leave the current commits and add a CHANGELOG.md note explaining the cleanup. Option C (acceptable for a cold-start WP): do nothing -- the working tree is already clean.",
+      "misfits": [],
+      "subtasks": [],
+      "affected_files": [
+        ".gitignore"
+      ]
+    },
+    {
+      "id": "Issue 6",
+      "severity": "minor",
+      "title": "Coverage fail_under=90 not declared in pyproject.toml",
+      "description": "The WP01 prompt T002 says: '[tool.coverage.run] and [tool.coverage.report]: source = [\"src\"], fail_under = 90 (enforced separately per package via --cov=src/support_bot/domain --cov-fail-under=90).' pyproject.toml has [tool.coverage.run] with source = [\"src\"] and [tool.coverage.report] without a fail_under. The current behaviour passes because the CLI flag --cov-fail-under=90 is supplied, but the pyproject declaration is missing. A future CI pipeline that runs `coverage report` without the CLI flag would silently drop the gate.",
+      "fix": "Add `fail_under = 90` under [tool.coverage.report] in pyproject.toml.",
+      "misfits": [],
+      "subtasks": [],
+      "affected_files": [
+        "pyproject.toml"
+      ]
+    },
+    {
+      "id": "Issue 7",
+      "severity": "minor",
+      "title": "Ruff lint select set is broader than the WP01 prompt specifies",
+      "description": "The WP01 prompt T002 says: '[tool.ruff] and [tool.ruff.lint]: select = [\"E\",\"F\",\"I\",\"B\",\"UP\"].' The current pyproject.toml has select = [\"E\",\"F\",\"I\",\"B\",\"UP\",\"SIM\",\"PL\"]. The wider set is a superset and is generally desirable (SIM and PL catch simplification and pylint-style issues), so the working tree is cleaner than the prompt required. This is informational -- the divergence is intentional and not a problem.",
+      "fix": "No action required. Optionally, in WP04 or WP05, add a note to CONTRIBUTING.md documenting the deviation and the rationale.",
+      "misfits": [],
+      "subtasks": [],
+      "affected_files": [
+        "pyproject.toml"
+      ]
+    },
+    {
+      "id": "Issue 8",
+      "severity": "major",
+      "title": "VectorStore.query returns Chunk, not RetrievedChunk",
+      "description": "The Retriever port (domain/answering/ports.py) returns list[RetrievedChunk] -- i.e. a Chunk augmented with similarity. The VectorStore port (domain/ingestion/ports.py::VectorStore.query) returns list[Chunk] -- i.e. without similarity. At runtime these are two distinct query surfaces sharing the same Chroma collection: Retriever.retrieve(question, k) for the agent, VectorStore.query(embedding, k) for the WP03 ingestion flow. The signature split is sensible (different callers), but the asymmetric return type forces a lossy bridge -- Chunk has no similarity field, so the agent path will either need similarity to be exposed through VectorStore.query (preferred) or computed indirectly from embedding distance in the adapter (lossy). The WP03 Chroma adapter author needs to know which.",
+      "fix": "Decide before WP03: (a) change VectorStore.query to return list[RetrievedChunk] with similarity populated, then drop the Retriever port as a separate surface (the application layer depends on VectorStore.query directly), or (b) keep the split ports but require the Retriever adapter to call VectorStore.query and map Chunk -> RetrievedChunk, with similarity computed by the adapter from the embedding vector. Document the decision in plan.md and update the affected port docstrings.",
+      "misfits": [],
+      "subtasks": [
+        "WP02",
+        "WP03"
+      ],
+      "affected_files": [
+        "src/support_bot/domain/ingestion/ports.py",
+        "src/support_bot/domain/answering/ports.py",
+        "specs/001-customer-support-rag-agent/plan.md"
+      ]
+    },
+    {
+      "id": "Issue 9",
+      "severity": "minor",
+      "title": "FakeEmbedder.fail_next raises LLMUnavailable",
+      "description": "FakeEmbedder's fail_next path raises LLMUnavailable, reusing the LLM exception for an embedding-provider error. The docstring acknowledges this is intentional (no separate EmbedderUnavailable exception exists), and the WP01 happens to be the right behaviour when only one provider is in scope. If a future WP adds a separate EMBEDDER_BACKEND that runs against the same LLM API key as the chat path, callers will conflate the two failure modes. The plan does not introduce a separate exception because the WP prompt didn't list one.",
+      "fix": "No action for WP01. Note in WP04 (when the EMBEDDER_BACKEND switch lands) that the lack of EmbedderUnavailable may warrant adding EmbedderUnavailable to errors.py and updating the plan.",
+      "misfits": [],
+      "subtasks": [
+        "WP04"
+      ],
+      "affected_files": [
+        "tests/fakes/ingestion/embedder.py"
+      ]
+    },
+    {
+      "id": "Issue 10",
+      "severity": "minor",
+      "title": "Spec wording drift on LowConfidencePolicy.handle",
+      "description": "spec.md line 328 says '...the LangGraph workflow shall route execution to the LowConfidencePolicy.handle port, whose default implementation...'. The plan (specs/001-customer-support-rag-agent/plan.md line 785) and the WP01 code use `should_refuse(chunks) -> bool` and `refusal_message() -> str` as the port contract. The plan is the authoritative SyDD reference; the spec wording is stale. Not a blocker for WP01, but downstream work must not rely on the spec wording.",
+      "fix": "Edit specs/001-customer-support-rag-agent/spec.md line 328 to replace 'LowConfidencePolicy.handle port' with 'LowConfidencePolicy port (with should_refuse / refusal_message methods)'. Optionally grep the rest of spec.md for stray .handle references.",
+      "misfits": [],
+      "subtasks": [],
+      "affected_files": [
+        "specs/001-customer-support-rag-agent/spec.md"
+      ]
+    }
+  ],
+  "dependency_notes": "WP02 (LangGraph + API) and WP03 (ingestion container) depend on WP01. If the change for Issue 8 (VectorStore.query return type) requires an API change, the implement skill for WP02 and WP03 must re-run after WP01 corrections land. Recommended approach: resolve Issue 8 in the WP01 fix (decide and document the contract) before starting WP02 so WP02's implement does not need to re-merge.",
+  "closing": "Domain entities, ports, errors, and fakes are well-crafted and pass every functional gate, but three WP01 acceptance criteria are unmet (port-conformance tests, import-linter config, visible TDD commit ordering); a fourth major issue (VectorStore.query return type) requires a design decision before WP02/WP03 can run safely. Requesting changes."
+}

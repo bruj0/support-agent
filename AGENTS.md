@@ -324,7 +324,7 @@ All response body strings pass through `SecretScrubber` before placement or logg
 
 ## 11. Documentation deliverables
 
-`README.md` has four sections: (1) local Docker Compose, (2) model / library / vector-store rationale, (3) LangGraph workflow design, (4) AWS view (EKS + ALB + Secrets Manager + EBS PVCs). Plus [`docs/architecture/local-flow.md`](docs/architecture/local-flow.md) and [`docs/architecture/aws-flow.md`](docs/architecture/aws-flow.md) with their prose walkthroughs.
+`README.md` has four sections: (1) local Docker Compose, (2) model / library / vector-store rationale, (3) LangGraph workflow design, (4) AWS view (EKS + ALB + Secrets Manager + EBS PVCs). Plus [`docs/architecture/local-flow.md`](docs/architecture/local-flow.md) and [`docs/architecture/aws-flow.md`](docs/architecture/aws-flow.md) with their prose walkthroughs. The spec-bridge artefacts live under `specs/001-customer-support-rag-agent/` — `spec.md`, `plan.md`, `decomposition.md`, `tasks.md`, and per-work-package task prompts in `tasks/WP*.md`. They are kept in-tree so a reviewer can trace each design decision back to the requirement and the WP that implemented it.
 
 ---
 

@@ -1,0 +1,76 @@
+{
+  "skill": "review",
+  "version": 2,
+  "status": "approved",
+  "wp_id": "WP02",
+  "feature_slug": "001-customer-support-rag-agent",
+  "timestamp": "2026-09-06T10:46:25.793372+00:00",
+  "previous_version": 1,
+  "prose": "WP02 review v1 feedback addressed across four TDD-disciplined commits (59160c3 test, 949caca feat, 25362cb feat, e5a80b0 feat). All four major issues plus the five minor issues are resolved. New: 5 InMemorySpanExporter span-attribute tests (Issues 4+7), MetricsRecorder + PrometheusMetricsMiddleware that actually record (Issue 2), tests/support/build_fake_app.py eliminating composition -> tests/fakes imports (Issue 1), service.version from importlib.metadata (Issue 6), DEBUG log on AnsweringService error path (Issue 5), metrics_registry wired into /metrics route (Issue 8), ruff import sort fixed (Issue 9), log key rename query_text_hash -> question_text_hash (Issue 3), span attributes route + question.text_hash + answer.tokens_in added (Issue 3). 116 tests pass, mypy --strict clean, interrogate 100%, ruff clean, 94.74% coverage on application. The conditional-edge Literal annotation remains Literal[generate, refuse, __end__] per AGENTS 1.5 (Issue 10 was informational). Approving.",
+  "reviewer": "cursor",
+  "criteria": [
+    {
+      "name": "[ ] `pytest tests/application tests/composition tests/api -q`",
+      "verdict": "pass",
+      "note": "32 passed in the targeted run; 116 in the full suite."
+    },
+    {
+      "name": "[ ] `pytest --cov=src/support_bot/application",
+      "verdict": "pass",
+      "note": "94.74% coverage on application; >= 90% target reached."
+    },
+    {
+      "name": "[ ] `interrogate --fail-under 100 src/support_bot/application",
+      "verdict": "pass",
+      "note": "100.0% interrogate PASSED."
+    },
+    {
+      "name": "[ ] `tests/api/test_request_id_middleware_is_first.py` passes",
+      "verdict": "pass",
+      "note": "4/4 tests pass; the middleware-order test now also asserts PrometheusMetricsMiddleware is in the chain."
+    },
+    {
+      "name": "[ ] No code in `application/` or `composition/` imports from",
+      "verdict": "pass",
+      "note": "Only the dedicated workflow module imports langgraph (AGENTS 1.5 carve-out). composition/ no longer references tests/ at runtime -- the only matches are docstring mentions. (Issue 1 fixed.)"
+    },
+    {
+      "name": "[ ] All TDD targets above are passing tests.",
+      "verdict": "pass",
+      "note": "Added tests/application/answering/test_graph_emits_otel_spans.py with 5 InMemorySpanExporter tests covering all AGENTS.md 6.4 node-span attributes (Issue 4 fixed)."
+    },
+    {
+      "name": "[ ] `AgentState.request_id` is set on every invocation; no span",
+      "verdict": "pass",
+      "note": "retrieve_node and generate_node now set route + question.text_hash; generate_node also sets answer.tokens_in (sum of chunk text lengths); top-level answering_service.answer span sets request.id, route, question.text_hash, decision.path (Issues 3 + 7 fixed)."
+    },
+    {
+      "name": "Misfit Resolution: each misfit in misfits_addressed has a passing test",
+      "verdict": "pass",
+      "note": "M3 refuse-without-LLM tested via tests/application/answering/test_graph_emits_otel_spans.py::test_graph_refuse_path_emits_correct_decision_path; M5 scrubber tested in tests/adapters/test_secret_scrubber.py; M6 503 mapping tested in tests/application/api/test_error_mapper.py; M8 generate path tested via InMemorySpanExporter assertion on node.generate span."
+    },
+    {
+      "name": "Subsystem Boundary Respect: no undeclared cross-subsystem coupling",
+      "verdict": "pass",
+      "note": "Issue 1 fixed: composition/api_app.py no longer imports tests/fakes/*. tests/support/build_fake_app.py is the single seam between the composition root and the in-memory fakes."
+    },
+    {
+      "name": "Contract Compliance: implementation matches plan.md inter-system contracts",
+      "verdict": "pass",
+      "note": "Issue 2 + 8 fixed: MetricsRecorder + PrometheusMetricsMiddleware now actually record request_count_total and request_latency_seconds on every response, and /metrics renders the same registry the middleware writes to. retrieval_similarity_top1 gauge updated by AnsweringService after retrieval."
+    },
+    {
+      "name": "No New Misfits: no new failure modes introduced without documenting them",
+      "verdict": "pass",
+      "note": "No new misfits; tests/support is a pure test-only helper module."
+    },
+    {
+      "name": "Build Health -- language type-checker exits 0",
+      "verdict": "pass",
+      "note": "mypy --strict clean on application/ + composition/ (13 source files)."
+    }
+  ],
+  "issues": [],
+  "dependency_notes": "WP03 (ingestion container) and WP04 (docker-compose stack) depend on WP02. Both now have a fully wired Prometheus metrics layer to integrate against (the new PrometheusMetricsMiddleware sits before RequestIdMiddleware so spans + log lines + metrics all share the request_id). No code paths in WP03 or WP04 are forced to re-run by these changes; the worktree still has the WP01 baseline so dependents' merges remain additive.",
+  "closing": "WP02 review v1 issues resolved: composition layering clean, Prometheus series actually recorded with shared registry, AGENTS.md 6.4 span attributes present and tested via InMemorySpanExporter, request_id on top-level span verified, service.version from importlib.metadata, DEBUG log on AnsweringService error path, dead except block removed, ruff clean. Approving."
+}

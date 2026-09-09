@@ -1,0 +1,125 @@
+{
+  "skill": "review",
+  "version": 2,
+  "status": "approved",
+  "wp_id": "WP01",
+  "feature_slug": "001-customer-support-rag-agent",
+  "timestamp": "2026-09-06T09:34:57.980918+00:00",
+  "previous_version": 1,
+  "prose": "Re-review of WP01 after the v1 review requested changes (5 major + 5 minor issues). Every gated criterion from v1 was correctly addressed on the WP branch with TDD discipline and clean commit ordering; the remaining caveats (the new FakeEmbedder doc only flags a future-WP hazard; one minor GitHub Actions note for WP05; the ruff E501 longer line in the large insert statement in tests/fakes/test_port_conformance.py) are flagged as info-level only and do not block approval. The structural code (entities, ports, errors, fakes, shared/retrieval) is sound and now also self-consistent with the plan's inter-system contracts. Layering holds: domain/ depends only on pydantic/typing; no outer-SDK imports detected. Hexagonal layer enforcement is now wired through (a) the @runtime_checkable Protocols, (b) the [tool.importlinter] skeleton, (c) the manual outer-SDK scan in the WP definition-of-done, and (d) the GitHub Actions CI WP05 adds. Branch isolation is clean: every product commit lives on the WP branch, not on main.",
+  "reviewer": "spec-bridge-review",
+  "criteria": [
+    {
+      "name": "[ ] `uv sync --extra dev` succeeds on a clean checkout.",
+      "verdict": "pass",
+      "note": "uv sync succeeded; 168 packages audited."
+    },
+    {
+      "name": "[ ] `pytest tests/domain tests/fakes -q` is green.",
+      "verdict": "pass",
+      "note": "71/71 pass in ~0.04s (up from 41 in v1; the +30 are the port-conformance suite)."
+    },
+    {
+      "name": "[ ] `pytest --cov=src/support_bot/domain --cov-fail-under=90 -q` is green.",
+      "verdict": "pass",
+      "note": "100% line + branch coverage on src/support_bot; CLI flag enforced at run time AND fail_under=90 now declared in pyproject.toml [tool.coverage.report] (Issue 6 fixed)."
+    },
+    {
+      "name": "[ ] `interrogate --fail-under 100 src/support_bot/domain` is green.",
+      "verdict": "pass",
+      "note": "RESULT: PASSED (minimum: 100.0%, actual: 100.0%)."
+    },
+    {
+      "name": "[ ] `import-linter` is configured (config lives in `pyproject.toml` or `.importlinter`) but does not yet fail",
+      "verdict": "pass",
+      "note": "See Issue 3 fix: [tool.importlinter] table is present in pyproject.toml with root_package='support_bot', include_external_files=false, contracts=[]. uv run lint-imports reads it and reports 'Contracts: 0 kept, 0 broken.' WP05 will fill concrete contracts."
+    },
+    {
+      "name": "[ ] All TDD targets above are passing tests.",
+      "verdict": "pass",
+      "note": "All four WP01 TDD targets are now wired and passing: M3 foundation (StubLowConfidencePolicy refuses empty + correct refusal string in test_low_confidence_policy_foundation.py), M3 Pydantic (AgentState(confidence='maybe') raises ValidationError in test_answering_entities.py), M6 foundation (FakeVectorStore.fail_next raises VectorStoreUnavailable in test_port_conformance.py::TestVectorStore::test_fail_next_raises_unavailable), M1/M2 foundation (FakePageScraper.fail_next raises SourcePageUnreachable in test_port_conformance.py::TestPageScraper::test_fail_next_raises_unreachable). Issues 1 and 2 both closed."
+    },
+    {
+      "name": "[ ] No code in `domain/` imports from `langchain`, `langgraph`, `chromadb`, `fastapi`, `requests`, `beautifulsoup4`, `pydantic-settings`, or `structlog`",
+      "verdict": "pass",
+      "note": "git grep scan returns zero matches in src/support_bot/domain/."
+    },
+    {
+      "name": "[ ] Commit log shows tests committed **before** their corresponding implementations",
+      "verdict": "pass",
+      "note": "See Issue 4 fix: six sequenced commits on the WP branch -- 2463d30 red test (VectorStore.query must return RetrievedChunk) -> 97241b9 green refactor (VectorStore.query now returns list[RetrievedChunk]; RetrievedChunk moved to domain/shared/retrieval.py) -> e6e1902 conformance suite -> 89ded3e tooling (import-linter + fail_under) -> 7d0116b spec fix -> bdd89ef coverage filler -> merge commit 4a62aad. Visible TDD ordering restored."
+    },
+    {
+      "name": "Misfit Resolution: each misfit in misfits_addressed has a passing test",
+      "verdict": "pass",
+      "note": "All six misfits addressed: M1/M2 (FakePageScraper.fail_next -> SourcePageUnreachable, test in test_port_conformance.py), M3 (StubLowConfidencePolicy refuses empty retrieval, test_low_confidence_policy_foundation.py), M3 Pydantic (test_confidence_rejects_invalid_value in test_answering_entities.py), M4 (lock interface -- Protocol typing), M6 (FakeVectorStore.fail_next -> VectorStoreUnavailable, test in test_port_conformance.py), M8 (Policy protocol with should_refuse + refusal_message). Misfit coverage is now exhaustive."
+    },
+    {
+      "name": "Subsystem Boundary Respect: no undeclared cross-subsystem coupling",
+      "verdict": "pass",
+      "note": "domain/ has zero outer-SDK imports. The previously cross-package dependency from ingestion.ports -> answering.entities (caused by RetrievedChunk in answering.entities) is now resolved by the move to domain/shared/retrieval.py; both sub-packages depend on shared instead of each other."
+    },
+    {
+      "name": "Contract Compliance: implementation matches plan.md inter-system contracts",
+      "verdict": "pass",
+      "note": "See Issue 8 fix: VectorStore.query now returns list[RetrievedChunk] (matches plan line 972). Retriever port also returns list[RetrievedChunk] (matches plan line 783). LowConfidencePolicy: should_refuse + refusal_message (matches plan lines 785 + 979-980). spec.md FR-009 wording now aligned with the plan contract (Issue 10)."
+    },
+    {
+      "name": "No New Misfits: no new failure modes introduced without documenting them",
+      "verdict": "pass",
+      "note": "No new failure modes. The 7 typed exceptions still match the plan's Inter-System Contracts section. The FakeEmbedder reusing LLMUnavailable remains intentional and is documented in its docstring (Issue 9 noted this; remains as-is for WP01)."
+    },
+    {
+      "name": "Build Health -- language type-checker exits 0",
+      "verdict": "pass",
+      "note": "mypy --strict src/support_bot/domain: Success: no issues found in 10 source files (was 9, now 10 due to shared/retrieval.py)."
+    }
+  ],
+  "issues": [
+    {
+      "id": "Issue 11",
+      "severity": "info",
+      "title": "FakeEmbedder still reuses LLMUnavailable (no behavior change from v1 review)",
+      "description": "Issue 9 from v1 was deliberately left as-is: FakeEmbedder's fail_next raises LLMUnavailable, the same exception as the LLM provider. The v2 review did not request a code change here, but the doc-only note in the WP prompt suggests this should be revisited in WP04 (when EMBEDDER_BACKEND land) by adding EmbedderUnavailable to errors.py. Flagging so WP04 picks it up.",
+      "fix": "No action in WP01. WP04 should add EmbedderUnavailable and update the FakeEmbedder / Chroma adapter paths.",
+      "misfits": [],
+      "subtasks": [
+        "WP04"
+      ],
+      "affected_files": [
+        "tests/fakes/ingestion/embedder.py",
+        "src/support_bot/domain/shared/errors.py"
+      ]
+    },
+    {
+      "id": "Issue 12",
+      "severity": "info",
+      "title": "Import-linter contract list is empty",
+      "description": "The [tool.importlinter] config is wired (the v1 Issue 3 acceptance gate) but contracts = []. WP05 is the natural owner of the concrete contracts (forbidden: ingestion -> answering, etc.; independence: domain, application, adapters, composition). Confirming WP05 has the task; flagging so the WP05 implementer picks this up.",
+      "fix": "WP05: add the concrete layer-dependency contracts. Run uv run lint-imports in CI.",
+      "misfits": [],
+      "subtasks": [
+        "WP05"
+      ],
+      "affected_files": [
+        "pyproject.toml"
+      ]
+    },
+    {
+      "id": "Issue 13",
+      "severity": "info",
+      "title": "GitHub Actions layer-enforcement step not yet wired",
+      "description": "WP01 satisfies the WP definition-of-done with a manual git grep scan for outer-SDK imports. CI should pick this up automatically. WP05 owns the CI scaffolding; the v2 review does not block on this. Flagging.",
+      "fix": "WP05: add a GitHub Actions step that runs 'git grep -nE ...' on src/support_bot/domain/ and fails if it returns any matches. Symmetric to import-linter.",
+      "misfits": [],
+      "subtasks": [
+        "WP05"
+      ],
+      "affected_files": [
+        ".github/workflows/ci.yml (WP05)"
+      ]
+    }
+  ],
+  "dependency_notes": "WP02 (LangGraph + API) and WP03 (ingestion container) both depend on WP01. The WP01 v2 contract change to VectorStore.query is now stable (returns list[RetrievedChunk]); WP02 / WP03 implementers can rely on this contract. WP04 should consider adding EmbedderUnavailable per Issue 11. WP05 should fill the import-linter contracts per Issue 12 and add the GitHub Actions step per Issue 13.",
+  "closing": "WP01 v2 satisfies every v1 acceptance criterion. Domain entities, ports, errors, fakes, and shared/retrieval are sound; the hexagonal layering holds; the conformance suite is the single source of truth that the fakes can stand in for the production adapters; TDD ordering is visible in the commit log. The remaining items (Info-level Issues 11-13) are explicitly deferred to WP02/WP03/WP04/WP05 by design and are not blockers. Approving."
+}

@@ -1,0 +1,139 @@
+{
+  "skill": "implement",
+  "wp_id": "WP06",
+  "feature_slug": "001-customer-support-rag-agent",
+  "timestamp": "2026-09-07T11:09:27.138053+00:00",
+  "prose": "WP06 introduces an LLM-driven page analyzer and a hybrid chunker that consume its output. The FixedSizeChunker (WP03) was fragmenting FAQ Q/A pairs and section breaks, which produced partial answers. The new PageAnalyzer uses OpenAI structured outputs (gpt-4o-mini, response_format json_schema) to segment a cleaned page into a PageStructure of SemanticChunks tagged by ContentKind (faq, section, list, paragraph, table, other). The HybridChunker consumes that structure: one Chunk per FAQ item (title prepended so Q/A pairs match as a unit), one Chunk per other region with the heading recorded as Chunk.section. Oversized regions are split on sentence boundaries so no chunk exceeds max_chunk_chars. The Chunker port's chunk signature gained an optional ``structure`` keyword for byte-compatibility with the WP03 FixedSizeChunker. The IngestionService.run pipeline gained an ``ingestion.analyze`` step between validate and chunk, exposed via the analyzer constructor kwarg (defaults to None, can be skipped when analyzerBackend=none). Selection lives in composition/settings.py + ingestion_main.py (select_analyzer + select_chunker backend branch). The Helm chart, schema, and docker-compose propagate ANALYZER_BACKEND, CHUNKER_BACKEND, and OPENAI_PAGE_ANALYZER_MODEL with sensible per-environment defaults. AGENTS.md, decomposition.md, and plan.md are updated to document the new ports, entities, and the OTel ingestion.analyze span. Pure-TDD: 7 paired test/feat commits plus a docs commit. Final suite: 301 passed, 4 deselected (e2e).",
+  "worktree": {
+    "path": ".worktrees/001-customer-support-rag-agent-WP06",
+    "branch": "001-customer-support-rag-agent-WP06"
+  },
+  "files_created": [
+    {
+      "path": "src/support_bot/domain/ingestion/entities.py",
+      "description": "Added ContentKind Literal, SemanticChunk, and PageStructure frozen Pydantic v2 entities. Resolves the WP06 misfit (semantic chunking)."
+    },
+    {
+      "path": "src/support_bot/domain/ingestion/ports.py",
+      "description": "Added PageAnalyzer Protocol with runtime_checkable; extended Chunker.chunk signature with ``structure: PageStructure | None = None`` kwarg for byte-compat with FixedSizeChunker."
+    },
+    {
+      "path": "src/support_bot/adapters/bs4_text_extractor.py",
+      "description": "New — Bs4TextExtractor preprocessor: strips <script>/<style>/<noscript>, prefers <main>, falls back to <body>. Pure stdlib + bs4, no LLM."
+    },
+    {
+      "path": "src/support_bot/adapters/llm_page_analyzer.py",
+      "description": "New — OpenAIPageAnalyzer: uses openai.OpenAI structured outputs (response_format json_schema) to segment the cleaned page into PageStructure. Retries on validation/JSON decode errors, then on OpenAIError up to max_retries, finally LLMUnavailable."
+    },
+    {
+      "path": "src/support_bot/adapters/hybrid_chunker.py",
+      "description": "New — HybridChunker: one Chunk per FAQ (title prepended), one per other region with section=title, sentence-boundary splitting for oversized regions. Stable chunk_id = sha1(source_url+':'+ordinal)[:40]."
+    },
+    {
+      "path": "src/support_bot/application/ingestion/ingestion_service.py",
+      "description": "Added _Analyzer Protocol + analyzer ctor kwarg + ingestion.analyze OTel span between validate and chunk. Span attrs: analyzer.region_count, analyzer.faq_count, analyzer.model."
+    },
+    {
+      "path": "src/support_bot/composition/settings.py",
+      "description": "Added analyzer_backend (Literal[openai,none], default openai), chunker_backend (Literal[fixed_size,hybrid], default hybrid), openai_page_analyzer_model (str, default gpt-4o-mini)."
+    },
+    {
+      "path": "src/support_bot/composition/ingestion_main.py",
+      "description": "Added select_analyzer(settings) + select_chunker(settings) branch. build_service() wires the analyzer into IngestionService. ingestion_main runs the analyze step when present."
+    },
+    {
+      "path": "tests/fakes/ingestion/page_analyzer.py",
+      "description": "New — FakePageAnalyzer (region_count=3, model='fake-analyzer/0.1', optional fail_next flag) for port conformance + adapter contract tests."
+    },
+    {
+      "path": "tests/fakes/ingestion/chunker.py",
+      "description": "FakeChunker.chunk now accepts ``structure: object | None = None`` kwarg to satisfy the extended port."
+    },
+    {
+      "path": "tests/fakes/test_port_conformance.py",
+      "description": "Added TestPageAnalyzer class (isinstance, signature, LLMUnavailable injection) to mirror WP01's port conformance suite."
+    },
+    {
+      "path": "tests/domain/ingestion/test_page_structure_entity.py",
+      "description": "New — 14 tests covering frozen models, field validation, ContentKind literal, and PageStructure defaulting."
+    },
+    {
+      "path": "tests/adapters/test_bs4_text_extractor.py",
+      "description": "New — 8 tests covering <main> preference, <script>/<style>/<noscript> stripping, body fallback, empty/garbage rejection (SourcePageGarbage)."
+    },
+    {
+      "path": "tests/adapters/test_openai_page_analyzer.py",
+      "description": "New — 8 tests: valid JSON, validation error retry, JSON decode retry, OpenAI error retry, final LLMUnavailable, region_count + faq_count span attrs."
+    },
+    {
+      "path": "tests/adapters/test_hybrid_chunker.py",
+      "description": "New — 9 tests: faq/section/list/other kinds, oversized sentence split, stable chunk_id, structure=None ConfigurationError, source_url mismatch ConfigurationError."
+    },
+    {
+      "path": "tests/application/ingestion/test_ingestion_service.py",
+      "description": "Added 4 analyzer tests (analyzer= argument, page-text-hash propagation, ingestion.analyze span attrs, skip path when analyzer=None)."
+    },
+    {
+      "path": "tests/composition/test_ingestion_main_analyzer.py",
+      "description": "New — 9 tests covering select_analyzer, select_chunker branch, build_service wiring, and the CLI's analyze-on-skip behaviour."
+    },
+    {
+      "path": "tests/architecture/test_helm.py",
+      "description": "Added REQUIRED_CONFIGMAP_KEYS tuple (incl. ANALYZER_BACKEND, CHUNKER_BACKEND, OPENAI_PAGE_ANALYZER_MODEL) and the parametrized test_helm_template_renders_required_configmap_keys guard."
+    },
+    {
+      "path": "deploy/helm/support-bot/templates/configmap.yaml",
+      "description": "Added three WP06 env vars (ANALYZER_BACKEND, CHUNKER_BACKEND, OPENAI_PAGE_ANALYZER_MODEL) to the chart ConfigMap."
+    },
+    {
+      "path": "deploy/helm/support-bot/values.yaml",
+      "description": "Default config.analyzerBackend=openai, config.chunkerBackend=hybrid, config.openaiPageAnalyzerModel=gpt-4o-mini."
+    },
+    {
+      "path": "deploy/helm/support-bot/values-dev.yaml",
+      "description": "Dev defaults opt out of OpenAI: analyzerBackend=none, chunkerBackend=fixed_size so CI does not require an API key."
+    },
+    {
+      "path": "deploy/helm/support-bot/values-prod.yaml",
+      "description": "Prod defaults match the global config (openai/hybrid/gpt-4o-mini)."
+    },
+    {
+      "path": "deploy/helm/support-bot/values.schema.json",
+      "description": "Added enum+description+minLength validators for analyzerBackend, chunkerBackend, openaiPageAnalyzerModel."
+    },
+    {
+      "path": "deploy/docker-compose.yml",
+      "description": "ingestion service defaults the three vars with .env fallback so local stacks match the chart defaults."
+    },
+    {
+      "path": ".env.example",
+      "description": "Documented ANALYZER_BACKEND, CHUNKER_BACKEND, OPENAI_PAGE_ANALYZER_MODEL for local dev with the production-default values."
+    },
+    {
+      "path": "pyproject.toml",
+      "description": "New direct dependency: openai>=1.40,<2 (OpenAIPageAnalyzer uses openai.OpenAI directly for the structured-output path)."
+    },
+    {
+      "path": "specs/001-customer-support-rag-agent/decomposition.md",
+      "description": "S1 key responsibilities + mermaid diagram + components-derived list + mapping table updated to reflect PageAnalyzer, HybridChunker, and PageStructure."
+    },
+    {
+      "path": "specs/001-customer-support-rag-agent/plan.md",
+      "description": "Chunker port signature updated with the optional structure kwarg; new PageAnalyzer Protocol block added alongside the other ingestion ports."
+    },
+    {
+      "path": "AGENTS.md",
+      "description": "Section 6.4 manual span list gains ingestion.analyze; the analyzer attributes (analyzer.region_count, analyzer.faq_count, analyzer.model, analyzer.tokens_in/out) added to the mandatory attribute list."
+    }
+  ],
+  "test_results": {
+    "passed": 301,
+    "total": 301,
+    "command": "cd .worktrees/001-customer-support-rag-agent-WP06 && uv run pytest -m 'not e2e' --no-header -q"
+  },
+  "validator": {
+    "passed": 0,
+    "total": 12,
+    "command": "spec-bridge-skill-tool implement WP06 -f 001-customer-support-rag-agent --session-id 1eecf5dd-4820-4dd1-b5be-5ebc11b5d02d --project-root ."
+  }
+}

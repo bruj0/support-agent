@@ -1,0 +1,97 @@
+{
+  "skill": "review",
+  "version": 1,
+  "status": "implemented",
+  "wp_id": "WP04",
+  "feature_slug": "001-customer-support-rag-agent",
+  "timestamp": "2026-09-06T12:13:04.589651+00:00",
+  "previous_version": null,
+  "prose": "WP04 ships the docker-compose integration with a working chroma + api service composition, the OPENAIAnswerGenerator + ThresholdLowConfidencePolicy production adapters (TDD pair), the four required README sections, both Mermaid diagrams, the env template, and a marker-gated e2e suite. The 213 unit + contract tests all pass and coverage sits at 88.47% (gate 80% cleared). The compose file validates, the chroma image pulls, and the api image builds successfully. However the acceptance criterion ``docker compose up -d --wait succeeds on a fresh checkout after .env is populated`` FAILS at runtime: the api container exits with ValueError because ``deploy/start.sh`` calls ``create_app()`` without supplying the production AnsweringService factory. The factory module ``composition/production_factory.py`` exists and works (verified by direct unit-style invocation) but is never wired into the docker entrypoint. This is a single concrete defect -- not a design flaw -- and the fix is contained to ``deploy/start.sh`` (or a tiny entrypoint module). All other acceptance criteria pass.",
+  "reviewer": "spec-bridge-review",
+  "criteria": [
+    {
+      "name": "[ ] `pytest -q -m 'not e2e'` is green (every WP01–WP03 unit",
+      "verdict": "pass",
+      "note": "213 passed, 4 deselected (e2e tests behind marker)."
+    },
+    {
+      "name": "[ ] `pytest --cov=src/support_bot --cov-fail-under=80 -q` is",
+      "verdict": "pass",
+      "note": "Total coverage 88.47%, gate 80% cleared."
+    },
+    {
+      "name": "[ ] `docker compose up -d --wait` succeeds on a fresh checkout",
+      "verdict": "fail",
+      "note": "see Issue 1: api container exits with ValueError because start.sh doesn't wire production_factory.create_production_answering_service."
+    },
+    {
+      "name": "[ ] `curl -s localhost:8080/healthz` returns `{\"status\": \"ok\"}`.",
+      "verdict": "fail",
+      "note": "follow-on of Issue 1: the api container never starts, so /healthz is unreachable."
+    },
+    {
+      "name": "[ ] `curl -s -X POST localhost:8080/ask -H 'Content-Type:",
+      "verdict": "fail",
+      "note": "follow-on of Issue 1."
+    },
+    {
+      "name": "[ ] The README's diagrams render in GitHub Markdown.",
+      "verdict": "pass",
+      "note": "Both inline Mermaid previews use the supported flowchart LR syntax; standalone .mmd files mirror the same content."
+    },
+    {
+      "name": "[ ] No secrets appear in the rendered manifests or logs",
+      "verdict": "pass",
+      "note": "docker compose config | grep sk-[A-Za-z0-9]{32,} returns 0 matches."
+    },
+    {
+      "name": "Misfit Resolution: each misfit in misfits_addressed has a passing test",
+      "verdict": "pass",
+      "note": "FR-019 (compose stack): tests/e2e/test_docker_compose.py 4 tests cover SC-001 happy + refusal paths. NFR-006 (reproducibility): the docker config is pinned (chromadb/chroma:0.5.4) and the .env.example template gives the operator one source of truth. SC-001 (end-to-end): covered by the e2e suite behind the marker."
+    },
+    {
+      "name": "Subsystem Boundary Respect: no undeclared cross-subsystem coupling",
+      "verdict": "pass",
+      "note": "lint-imports: 0 broken contracts. production_factory.py is in composition/ and imports only from application/answering/answering_service.py (concrete) and adapters/* (concrete). No domain or application modules touched."
+    },
+    {
+      "name": "Contract Compliance: implementation matches plan.md inter-system contracts",
+      "verdict": "pass",
+      "note": "composition/api_app signature unchanged except for the new answering_service_factory kwarg (a backward-compatible addition). OPENAIAnswerGenerator conforms to AnswerGenerator port (question: str, retrieved: list[RetrievedChunk]) -> str and raises LLMUnavailable on provider error or timeout. ThresholdLowConfidencePolicy conforms to LowConfidencePolicy port and refusal_message() returns the spec FR-009 string verbatim."
+    },
+    {
+      "name": "No New Misfits: no new failure modes introduced without documenting them",
+      "verdict": "pass",
+      "note": "The api container exit in Issue 1 is a pre-existing latent issue exposed by actually running the stack -- not a new failure mode. The factory module itself is correct (verified by direct invocation). The fix is wiring, not new behavior."
+    },
+    {
+      "name": "Build Health -- language type-checker exits 0",
+      "verdict": "partial",
+      "note": "mypy --strict src/support_bot reports 7 errors, ALL pre-existing WP02/WP03 issues in files (secret_scrubber.py, metrics.py, structured_logger.py) that the WP04 constraint forbids modifying. WP04-introduced files (answerer_openai.py, low_confidence_policy.py, production_factory.py) are mypy clean. Baseline WP03 had the same 7 errors. Build gate does not block approval of WP04's surface."
+    }
+  ],
+  "issues": [
+    {
+      "id": "Issue 1",
+      "severity": "critical",
+      "title": "deploy/start.sh does not wire production_factory.create_production_answering_service, so the api container exits with ValueError on boot",
+      "description": "The composition root ``create_app()`` (composition/api_app.py) deliberately refuses to start without an explicit answering_service or answering_service_factory. The factory that builds the production wiring exists in composition/production_factory.py (create_production_answering_service(settings) -> AnsweringService) but is never invoked by deploy/start.sh. Result: docker compose up -d --wait starts the chroma container, starts the api container, but the api container exits immediately with ValueError('create_app() requires an explicit answering_service or an answering_service_factory ...'), which means the API never binds to :8000 and the healthcheck fails. This breaks the headline acceptance criterion ``docker compose up -d --wait succeeds on a fresh checkout`` and, transitively, the /healthz and /ask checks. Verified by: ``docker compose -f deploy/docker-compose.yml up -d --wait`` followed by ``docker logs support-bot-api``.",
+      "fix": "Pick one of the two clean fixes (both ship with a small diff):\n\n(Preferred) Add a tiny entrypoint module support_bot/composition/__main__.py (or rename the start.sh wrapper) that does:\n\n    from support_bot.composition.api_app import create_app\n    from support_bot.composition.production_factory import create_production_answering_service\n    from support_bot.composition.settings import Settings\n\n    app = create_app(\n        answering_service_factory=create_production_answering_service,\n        settings=Settings(),\n    )\n    # hand `app` to uvicorn programmatically via uvicorn.run(app, host='0.0.0.0', port=8000)\n\nThen change docker/api.Dockerfile ENTRYPOINT to ``python -m support_bot.composition`` (or ``python -m support_bot.composition.__main__``).\n\n(Alternative) Keep start.sh, but make it a Python script. Inline the same 5 lines as the preferred fix and exec into uvicorn with the produced app object (drop --factory). Either approach is fine; the key requirement is that the production wiring actually runs in the container.\n\nAfter the fix, re-run ``docker compose -f deploy/docker-compose.yml up -d --wait`` and confirm the api container becomes healthy. The existing 4 e2e tests in tests/e2e/test_docker_compose.py will then exercise the production wiring end-to-end.",
+      "misfits": [
+        "FR-019",
+        "NFR-006",
+        "SC-001"
+      ],
+      "subtasks": [
+        "WP04"
+      ],
+      "affected_files": [
+        "deploy/start.sh",
+        "docker/api.Dockerfile",
+        "src/support_bot/composition/production_factory.py"
+      ]
+    }
+  ],
+  "dependency_notes": "",
+  "closing": "WP04 is one small wiring fix away from green: deploy/start.sh needs to inject create_production_answering_service into create_app() (or use a Python entrypoint that does so). All other acceptance criteria pass cleanly."
+}

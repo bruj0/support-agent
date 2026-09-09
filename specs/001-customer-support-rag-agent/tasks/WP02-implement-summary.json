@@ -1,0 +1,73 @@
+{
+  "skill": "implement",
+  "wp_id": "WP02",
+  "feature_slug": "001-customer-support-rag-agent",
+  "timestamp": "2026-09-06T20:30:00+00:00",
+  "prose": "WP02 review v1 fixes complete. All 10 issues addressed across four TDD-disciplined commits on the WP branch (59160c3 test, 949caca feat, 25362cb feat, e5a80b0 feat). The four major issues (composition layering violation; Prometheus series defined but never recorded; missing AGENTS.md 6.4 span attributes; missing InMemorySpanExporter tests) plus the five minor issues are all resolved. 116 tests pass; mypy --strict clean on application/ + composition/; interrogate 100%; ruff clean; 94.74% coverage on application/.",
+  "files_created": [
+    {
+      "path": "src/support_bot/application/api/metrics_middleware.py",
+      "description": "PrometheusMetricsMiddleware: for every response increment request_count_total{route,status} and observe request_latency_seconds{route} on the composition-root MetricsRecorder. Route label is the FastAPI route template (falls back to raw path for 404s)."
+    },
+    {
+      "path": "tests/application/answering/test_graph_emits_otel_spans.py",
+      "description": "TDD red+green for review v1 Issues 4+7. Five span-attribute tests using InMemorySpanExporter: retrieve span carries route + question.text_hash + retrieval.* attributes; guard edge carries decision.path; generate span carries answer.tokens_in + answer.tokens_out; top-level answering_service.answer span carries request.id + route + question.text_hash + decision.path; refuse path emits node.refuse, not node.generate."
+    },
+    {
+      "path": "tests/support/__init__.py",
+      "description": "Marker for the tests/support package (one place where tests/fakes/* is imported from the test suite, keeping composition/ free of test-tree imports per AGENTS.md 1.1)."
+    },
+    {
+      "path": "tests/support/build_fake_app.py",
+      "description": "build_fake_app / build_fake_answering_service / build_fake_registry helpers. The single seam between the composition root and the in-memory fakes; tests call build_fake_app() instead of create_app(...)."
+    }
+  ],
+  "files_modified": [
+    {
+      "path": "src/support_bot/adapters/metrics.py",
+      "description": "Added MetricsRecorder wrapper that owns the four AGENTS.md 6.6 series bound to one CollectorRegistry (record_request, observe_adapter, set_retrieval_top1) and AdapterCallTimer context manager for adapter-side latency."
+    },
+    {
+      "path": "src/support_bot/application/answering/answering_service.py",
+      "description": "Constructor accepts metrics_recorder. answer() opens answering_service.answer span with request.id, route, question.text_hash attributes; sets error.type + decision.path on the typed-exception failure path. DEBUG-level answering_service.error log on the failure path. metrics_recorder.set_retrieval_top1 called after retrieval."
+    },
+    {
+      "path": "src/support_bot/application/answering/graph.py",
+      "description": "retrieve_node span gets route + question.text_hash; generate_node span gets route + question.text_hash + answer.tokens_in (= sum of chunk text lengths). retrieve_node error log drops raw exception message to avoid leaking secrets. LangGraphWorkflow.__init__ falls back to trace.get_tracer('support_bot.workflow') when tracer is None so tests with InMemorySpanExporter see spans."
+    },
+    {
+      "path": "src/support_bot/application/api/routes.py",
+      "description": "build_router accepts metrics_registry and renders generate_latest(metrics_registry) for /metrics so the registry the middleware writes to is the registry /metrics returns."
+    },
+    {
+      "path": "src/support_bot/composition/api_app.py",
+      "description": "create_app requires explicit answering_service (no fallback to tests/fakes/*). Wires PrometheusMetricsMiddleware (added before RequestIdMiddleware so Starlette's 'last add = outermost' rule keeps RequestIdMiddleware outermost). Passes metrics_registry to build_router."
+    },
+    {
+      "path": "src/support_bot/composition/observability.py",
+      "description": "_read_installed_version() reads importlib.metadata.version('support-bot') at module import time; _build_resource uses it for service.version, falling back to settings.service_version."
+    },
+    {
+      "path": "tests/conftest.py",
+      "description": "reset_tracer_provider autouse fixture resets trace._TRACER_PROVIDER_SET_ONCE._done before set_tracer_provider so OTel SDK's 'set once' lock doesn't drop overrides. Added in_memory_span_exporter fixture yielding (provider, exporter)."
+    },
+    {
+      "path": "tests/api/test_routes.py",
+      "description": "Switched from create_app(settings=...) to tests.support.build_fake_app.build_fake_app(). Added explicit assertion that /metrics returns the support-bot series (request_count_total, request_latency_seconds)."
+    },
+    {
+      "path": "tests/application/api/test_request_id_middleware_is_first.py",
+      "description": "test_composition_root_middleware_order uses build_fake_app; asserts RequestIdMiddleware is the first entry in user_middleware (which Starlette uses as the outermost layer) and PrometheusMetricsMiddleware is present in the chain."
+    }
+  ],
+  "test_results": {
+    "passed": 116,
+    "total": 116,
+    "command": "cd .worktrees/001-customer-support-rag-agent-WP02 && uv run pytest -q"
+  },
+  "validator": {
+    "passed": 12,
+    "total": 12,
+    "command": "mypy --strict / interrogate --fail-under 100 / ruff check / pytest --cov=fail-under=90 / outer-SDK scan (all pass)"
+  }
+}
