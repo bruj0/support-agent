@@ -101,6 +101,7 @@ class SecretScrubber:
         secret."""
 
         def _filter(attr_key: str, attr_value: str) -> str:
+            """OTel attribute filter: pass non-strings through, scrub strings."""
             # Only filter string values; non-string values
             # (numbers, bools, lists) pass through unchanged.
             if not isinstance(attr_value, str):

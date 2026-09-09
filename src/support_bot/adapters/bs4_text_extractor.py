@@ -23,9 +23,9 @@ the LLM analyzer span).
 from __future__ import annotations
 
 import re
+from typing import cast
 
 from bs4 import BeautifulSoup, Tag
-from typing import cast
 
 from support_bot.domain.shared.errors import SourcePageGarbage
 

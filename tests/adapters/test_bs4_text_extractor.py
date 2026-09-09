@@ -73,7 +73,10 @@ def test_falls_back_to_body_without_main() -> None:
 
 def test_collapse_blank_lines() -> None:
     """Runs of blank lines collapse to a single newline."""
-    html = "<p>One paragraph the extractor keeps</p>\n\n\n\n<p>Two paragraph the extractor keeps</p>"
+    html = (
+        "<p>One paragraph the extractor keeps</p>\n\n\n\n"
+        "<p>Two paragraph the extractor keeps</p>"
+    )
     out = _extractor().extract(html)
     assert "\n\n\n" not in out
     assert "One paragraph" in out and "Two paragraph" in out

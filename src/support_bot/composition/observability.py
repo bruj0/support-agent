@@ -33,6 +33,7 @@ falls back to ``settings.service_version``.
 from __future__ import annotations
 
 import atexit
+import contextlib
 import logging
 
 from opentelemetry import trace
@@ -225,14 +226,10 @@ def shutdown_tracing() -> None:
     """
     provider = trace.get_tracer_provider()
     if isinstance(provider, TracerProvider):
-        try:
+        with contextlib.suppress(Exception):  # pragma: no cover - shutdown best-effort
             provider.force_flush()
-        except Exception:  # pragma: no cover - shutdown best-effort
-            pass
-        try:
+        with contextlib.suppress(Exception):  # pragma: no cover - shutdown best-effort
             provider.shutdown()
-        except Exception:  # pragma: no cover - shutdown best-effort
-            pass
 
 
 def reset_tracing_for_tests() -> None:
@@ -244,14 +241,10 @@ def reset_tracing_for_tests() -> None:
     """
     provider = trace.get_tracer_provider()
     if isinstance(provider, TracerProvider):
-        try:
+        with contextlib.suppress(Exception):  # pragma: no cover - shutdown best-effort
             provider.force_flush()
-        except Exception:  # pragma: no cover - shutdown best-effort
-            pass
-        try:
+        with contextlib.suppress(Exception):  # pragma: no cover - shutdown best-effort
             provider.shutdown()
-        except Exception:  # pragma: no cover - shutdown best-effort
-            pass
     trace.set_tracer_provider(TracerProvider())
 
 

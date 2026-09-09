@@ -42,19 +42,16 @@ from __future__ import annotations
 
 import hashlib
 import json
-import logging
 import os
 import time
 from typing import Any
 
 import openai
-from openai import OpenAI
+import structlog
 from pydantic import ValidationError
 
 from support_bot.domain.ingestion.entities import PageStructure
 from support_bot.domain.shared.errors import LLMUnavailable
-
-import structlog
 
 _log = structlog.get_logger(__name__)
 
