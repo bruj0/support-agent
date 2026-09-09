@@ -42,6 +42,43 @@ flowchart LR
 
 ---
 
+## Suggested reading order
+
+If you're reviewing this repo, here's the path that traces
+a feature from "what the user sees" all the way back to
+"why it was built that way":
+
+| # | Doc | What's in it | Time |
+|---|---|---|---|
+| 1 | `README.md` (this file) | How it works at a glance, how to run it, how to test it, the features, the LangGraph design in 30 seconds. | 10 min skim |
+| 2 | [`AGENTS.md`](AGENTS.md) | Cross-cutting rules: hexagonal layering, TDD, observability, security, error mapping, coverage thresholds, the 23-rule cheat-sheet. | 10 min |
+| 3 | [`CONTEXT.md`](CONTEXT.md) | Glossary: `SourcePage`, `Chunk`, `RetrievedChunk`, `Question`, `Answer`, `AgentState`, `Port`, `Adapter`, `CompositionRoot`, `LangGraphWorkflow`, `LowConfidencePolicy`, `SecretScrubber`, `CleanedPage`. | 5 min |
+| 4 | [`docs/architecture/architecture.md`](docs/architecture/architecture.md) | The guided tour of the source tree: hexagonal layers end-to-end, a `POST /ask` trace, a `POST /ask` failure-injection matrix, a `Run ingestion Job` walkthrough, why each subsystem boundary was drawn where it is. | 30 min |
+| 5 | [`docs/architecture/local-flow.md`](docs/architecture/local-flow.md) | The local flow diagram + 9-step ask walkthrough + 9-step ingestion walkthrough + shared infrastructure section. | 10 min |
+| 6 | [`docs/architecture/aws-flow.md`](docs/architecture/aws-flow.md) | The AWS production diagram + scaling table + security table + failure-mode recovery table. | 10 min |
+| 7 | [`specs/001-customer-support-rag-agent/spec.md`](specs/001-customer-support-rag-agent/spec.md) | The original functional + non-functional requirements. The "why" for every feature. | 15 min |
+| 8 | [`specs/001-customer-support-rag-agent/plan.md`](specs/001-customer-support-rag-agent/plan.md) | Architecture decisions, phasing, trade-offs at a higher level than `architecture.md`. | 20 min |
+| 9 | [`specs/001-customer-support-rag-agent/decomposition.md`](specs/001-customer-support-rag-agent/decomposition.md) | Subsystem boundaries derived via Alexander's misfit analysis — the rationale for splitting `S1 Ingestion Pipeline` from `S2 Retrieval & Answering` from `S3 API & Cross-Cutting Safety` from `S4 Helm Packaging & CI`. | 15 min |
+| 10 | [`specs/001-customer-support-rag-agent/tasks/`](specs/001-customer-support-rag-agent/tasks/) | Per-WP prompts + `implement-summary.json` + `review-summary-{v1,v2}.json` — the audit trail of "what landed in WP0N, what the reviewer said, what changed between review v1 and v2". | 30 min |
+
+**How to trace a design decision:**
+
+> "Why is the page chunked semantically instead of every
+> 500 chars?"
+> → `spec.md` (requirement: "chunk by section heading or FAQ
+> Q/A pair"). → `plan.md` (phased under WP06). →
+> `tasks/WP06-semantic-analyzer.md` (the prompt that drove
+> the WP). → `tasks/WP06-implement-summary.json`
+> (`prose` field, 5-paragraph narrative). →
+> `architecture.md` §6.1.1 (the code-level walkthrough). →
+> `adapters/hybrid_chunker.py` (the implementation).
+
+The same trail works for any design choice: the
+spec-bridge artefacts under `specs/` are kept in-tree so a
+reviewer can follow the chain.
+
+---
+
 ## Features
 
 ### Core capabilities
