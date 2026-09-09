@@ -51,8 +51,6 @@ flowchart TB
     API -->|"chromadb.HttpClient :8000"| CHRSVC --> CHR --> PVC
     SM -.->|"IRSA pod identity"| API
 
-    classDef ext fill:#ffe9d6,stroke:#cc6f00,stroke-width:1px,color:#1a1a1a;
-    classDef sec fill:#f9a8d4,stroke:#831843,stroke-width:1px,color:#1a1a1a;
 ```
 
 ## Resource specifications (prod defaults)

@@ -71,14 +71,6 @@ flowchart TB
     SM -.->|"IRSA<br/>pod identity"| PODS
     CHROMA_AUTH -.->|"IRSA"| PODS
 
-    classDef aws fill:#ffb866,stroke:#7a3e00,stroke-width:1px,color:#1a1a1a;
-    classDef store fill:#fde68a,stroke:#92400e,stroke-width:2px,color:#1a1a1a;
-    classDef edge fill:#7dd3fc,stroke:#075985,stroke-width:1px,color:#0c1f33;
-    classDef sec fill:#f9a8d4,stroke:#831843,stroke-width:1px,color:#1a1a1a;
-    class R53,ALB,WAF,SVC,HPA,PODS,CHROMA_PODS,CHROMA_SVC,OTEL_PODS,PROM,GRAF,ADOT aws;
-    class PVC,TRACES,LOGS,METRICS store;
-    class EDGE edge;
-    class SM,CHROMA_AUTH sec;
 ```
 
 ## How the components scale

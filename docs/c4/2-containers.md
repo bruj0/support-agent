@@ -33,14 +33,6 @@ flowchart TB
     OAI_KEY -.->|"env_file (.env)<br/>or Secret mount"| API
     OAI_KEY -.->|"env_file (.env)<br/>or Secret mount"| ING
 
-    classDef api fill:#7dd3fc,stroke:#075985,stroke-width:2px,color:#0c1f33;
-    classDef job fill:#ffb866,stroke:#7a3e00,stroke-width:2px,color:#1a1a1a;
-    classDef store fill:#fde68a,stroke:#92400e,stroke-width:2px,color:#1a1a1a;
-    classDef sec fill:#f9a8d4,stroke:#831843,stroke-width:1px,color:#1a1a1a;
-    class API api;
-    class ING job;
-    class CHR store;
-    class OAI_KEY sec;
 ```
 
 ## Container inventory

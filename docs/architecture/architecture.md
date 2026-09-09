@@ -150,7 +150,6 @@ A short example — `Retriever` is a domain Protocol:
 ```python
 # src/support_bot/domain/answering/ports.py
 @runtime_checkable
-class Retriever(Protocol):
     """Fetch `RetrievedChunk`s for a question."""
 
     def retrieve(self, question: str, k: int = 4) -> list[RetrievedChunk]:
@@ -162,7 +161,6 @@ The implementation lives in `adapters/`:
 
 ```python
 # src/support_bot/adapters/vectorstore_chroma.py
-class ChromaRetriever:
     """``Retriever`` adapter backed by a ``ChromaVectorStore`` + injected ``Embedder``."""
 
     def __init__(self, *, vectorstore: ChromaVectorStore, embedder: Any) -> None:
@@ -208,7 +206,6 @@ two packages — `domain/ingestion/` and `domain/answering/` — plus
 `domain/ingestion/entities.py`:
 
 ```python
-class Chunk(BaseModel):
     """A piece of cleaned text ready for embedding."""
     model_config = ConfigDict(frozen=True)
     chunk_id: str = Field(min_length=40, max_length=40)
@@ -231,14 +228,12 @@ that capture the **LLM-analyzed semantic regions** of a page:
 ```python
 ContentKind = Literal["faq", "section", "list", "paragraph", "table", "other"]
 
-class SemanticChunk(BaseModel):
     model_config = ConfigDict(frozen=True)
     kind: ContentKind
     title: str = Field(min_length=1)
     text: str = Field(min_length=1)
     anchor: str | None = None
 
-class PageStructure(BaseModel):
     model_config = ConfigDict(frozen=True)
     source_url: str
     chunks: list[SemanticChunk]
@@ -261,7 +256,6 @@ return value, raised exceptions, and design rationale.
 
 ```python
 @runtime_checkable
-class PageScraper(Protocol):
     """Fetch the SOURCE_URL and return a SourcePage.
 
     Raises SourcePageUnreachable on HTTP non-2xx / DNS / TCP failure.
@@ -269,11 +263,9 @@ class PageScraper(Protocol):
     def fetch(self, url: str) -> SourcePage: ...
 
 @runtime_checkable
-class PageCleaner(Protocol):
     def clean(self, html: str) -> CleanedPage: ...
 
 @runtime_checkable
-class Chunker(Protocol):
     def chunk(
         self, text: str, *, source_url: str,
         chunk_size: int = 500, overlap: int = 50,
@@ -281,11 +273,9 @@ class Chunker(Protocol):
     ) -> list[Chunk]: ...
 
 @runtime_checkable
-class Embedder(Protocol):
     def embed(self, texts: list[str]) -> list[list[float]]: ...
 
 @runtime_checkable
-class VectorStore(Protocol):
     def upsert(self, chunks: list[Chunk]) -> None: ...
     def delete_by_source(self, source_url: str) -> None: ...
     def count(self) -> int: ...
@@ -296,7 +286,6 @@ WP06 added a sixth — `PageAnalyzer`:
 
 ```python
 @runtime_checkable
-class PageAnalyzer(Protocol):
     """Return a PageStructure for the cleaned page text.
 
     Used by the hybrid ingestion pipeline to drive semantic chunking
@@ -310,15 +299,12 @@ class PageAnalyzer(Protocol):
 `domain/answering/ports.py` declares three ports the agent depends on:
 
 ```python
-class Retriever(Protocol):       # already shown above
     ...
 
-class LowConfidencePolicy(Protocol):
     """Decide whether the agent should refuse on these chunks."""
     def should_refuse(self, chunks: list[RetrievedChunk]) -> bool: ...
     def refusal_message(self) -> str: ...
 
-class AnswerGenerator(Protocol):
     def generate(
         self, question: str, retrieved: list[RetrievedChunk],
     ) -> str: ...
@@ -357,7 +343,6 @@ call. Its body is the linear pipeline:
 
 ```python
 # src/support_bot/application/ingestion/ingestion_service.py
-class IngestionService:
     def __init__(
         self,
         *,
@@ -453,10 +438,6 @@ flowchart TB
     WINDOW --> LLM["OpenAI chat.completions<br/>response_format=json_schema<br/>gpt-4o-mini<br/>temperature=0"]
     LLM -->|"structured JSON<br/>validated by Pydantic"| PS["PageStructure<br/>source_url, chunks[SemanticChunk], model, generated_at"]
 
-    classDef stage fill:#7dd3fc,stroke:#075985,stroke-width:1px,color:#0c1f33;
-    classDef out fill:#fde68a,stroke:#92400e,stroke-width:2px,color:#1a1a1a;
-    class CLEAN,BS4,WINDOW,LLM stage;
-    class PS out;
 ```
 
 ###### Stage B — chunk, embed, persist (local)
@@ -467,17 +448,12 @@ flowchart TB
     HC -->|"Chunk[] with stable ids"| EMB["OpenAIEmbedder<br/>text-embedding-3-large @ 1024d"]
     EMB -->|"vector + metadata{source_url, section, ordinal}"| UP["ChromaVectorStore.upsert"]
 
-    classDef stage fill:#fde68a,stroke:#92400e,stroke-width:1px,color:#1a1a1a;
-    classDef out fill:#ffb866,stroke:#7a3e00,stroke-width:2px,color:#1a1a1a;
-    class HC,EMB stage;
-    class PS,UP out;
 ```
 
 ##### 1. `Bs4TextExtractor` — pre-processor, not the analyzer
 
 ```python
 # src/support_bot/adapters/bs4_text_extractor.py
-class Bs4TextExtractor:
     """Strip noise tags; keep the article/main/section content."""
 
     def __init__(self, *, min_text_length: int = 100) -> None: ...
@@ -496,7 +472,6 @@ extraction.
 
 ```python
 # src/support_bot/adapters/llm_page_analyzer.py
-class OpenAIPageAnalyzer:
     def __init__(
         self, *, model: str = "gpt-4o-mini",
         max_input_chars: int = 24_000,
@@ -583,7 +558,6 @@ key in `required`, so it's listed and allowed to be
 
 ```python
 # src/support_bot/adapters/hybrid_chunker.py
-class HybridChunker:
     def __init__(self, *, max_chunk_chars: int = 4_000) -> None: ...
     def chunk(
         self, text: str, *,
@@ -702,7 +676,6 @@ AGENTS.md §1.5):
 
 ```python
 # src/support_bot/domain/answering/entities.py
-class AgentState(BaseModel):
     model_config = ConfigDict(frozen=True)
     request_id: str
     question: str
@@ -751,7 +724,6 @@ invoked by `application/answering/answering_service.py`:
 
 ```python
 # src/support_bot/application/answering/answering_service.py
-class AnsweringService:
     def __init__(self, *, graph, retriever, policy, generator, tracer):
         ...
 
@@ -794,7 +766,6 @@ candidate set returned by the vector store:
 
 ```python
 # src/support_bot/adapters/lexical_rerank_retriever.py (abridged)
-class LexicalRerankRetriever:
     def __init__(self, *, inner, alpha=0.5, candidate_k_multiplier=5):
         ...
 
@@ -894,7 +865,6 @@ Concrete example — the FastAPI middleware:
 
 ```python
 # src/support_bot/application/api/middleware.py
-class RequestIdMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         rid = request.headers.get("X-Request-Id") or uuid4().hex
         bind_contextvars(request_id=rid)            # structlog
@@ -988,7 +958,6 @@ external Secrets Manager).
 Required keys (from AGENTS.md §9):
 
 ```python
-class Settings(BaseSettings):
     # Ingestion
     source_url: str = ""
     lock_dir: str = "/var/run/support-bot"

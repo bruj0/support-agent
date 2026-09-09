@@ -32,12 +32,6 @@ flowchart TB
     JOB -->|"chat.completions.create"| OAI
     JOB -->|"chromadb.HttpClient"| CHR_HOST
 
-    classDef sys fill:#7dd3fc,stroke:#075985,stroke-width:2px,color:#0c1f33;
-    classDef ext fill:#fde68a,stroke:#92400e,stroke-width:1px,color:#1a1a1a;
-    classDef user fill:#ffb866,stroke:#7a3e00,stroke-width:2px,color:#1a1a1a;
-    class SYS sys;
-    class OAI,CHR_HOST,OTel,PROM,SRC ext;
-    class U user;
 ```
 
 ## Actors

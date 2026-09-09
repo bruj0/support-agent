@@ -87,14 +87,6 @@ flowchart TB
     CHR_VS --> D_ERR
     POLICY --> D_ERR
 
-    classDef comp fill:#7dd3fc,stroke:#075985,stroke-width:1px,color:#0c1f33;
-    classDef app fill:#ffb866,stroke:#7a3e00,stroke-width:1px,color:#1a1a1a;
-    classDef adp fill:#fde68a,stroke:#92400e,stroke-width:1px,color:#1a1a1a;
-    classDef dom fill:#f9a8d4,stroke:#831843,stroke-width:2px,color:#1a1a1a;
-    class APP,FACTORY,OBS,CFG,IM comp;
-    class ROUTES,MID,ERR,METRICS,SERVICE,GRAPH,ISERVICE,ILOCK,VAL app;
-    class SCRAPER,CLEANER,EXTRACT,ANALYZER,HCHUNKER,FCHUNKER,OPENAI_EMB,LOCAL_EMB,LEX,CHR_VS,ANSWERER,POLICY,SCRUB,METRICS_AD adp;
-    class D_ENT_A,D_PORTS_A,D_ENT_I,D_PORTS_I,D_ERR dom;
 ```
 
 ## Layer rules (enforced by `import-linter`)
