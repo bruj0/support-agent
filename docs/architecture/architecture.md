@@ -14,23 +14,39 @@
 
 ## Table of contents
 
-1. [What the system does](#1-what-the-system-does)
-2. [The two flows at a glance](#2-the-two-flows-at-a-glance)
-3. [Layered architecture (hexagonal)](#3-layered-architecture-hexagonal)
-4. [Layer rules and the dependency direction](#4-layer-rules-and-the-dependency-direction)
-5. [The domain layer](#5-the-domain-layer)
-   - [5.1 Entities](#51-entities)
-   - [5.2 Ports](#52-ports)
-6. [The application layer](#6-the-application-layer)
-   - [6.1 Ingestion use case](#61-ingestion-use-case)
-   - [6.2 Answering workflow (LangGraph)](#62-answering-workflow-langgraph)
-7. [The adapter layer](#7-the-adapter-layer)
-8. [The composition root](#8-the-composition-root)
-9. [Observability: one request_id across all layers](#9-observability-one-request_id-across-all-layers)
-10. [Security: secret scrubbing](#10-security-secret-scrubbing)
-11. [Configuration](#11-configuration)
-12. [Local development end-to-end](#12-local-development-end-to-end)
-13. [Walkthroughs — tracing a request from end to end](#13-walkthroughs-tracing-a-request-from-end-to-end)
+- [`support-bot` — Architecture \& Codebase Walkthrough](#support-bot--architecture--codebase-walkthrough)
+  - [Table of contents](#table-of-contents)
+  - [1. What the system does](#1-what-the-system-does)
+  - [2. The two flows at a glance](#2-the-two-flows-at-a-glance)
+  - [3. Layered architecture (hexagonal)](#3-layered-architecture-hexagonal)
+  - [4. Layer rules and the dependency direction](#4-layer-rules-and-the-dependency-direction)
+  - [5. The domain layer](#5-the-domain-layer)
+    - [5.1 Entities](#51-entities)
+    - [5.2 Ports](#52-ports)
+  - [6. The application layer](#6-the-application-layer)
+    - [6.0 How the LangGraph workflow is composed](#60-how-the-langgraph-workflow-is-composed)
+    - [6.1 Ingestion use case](#61-ingestion-use-case)
+      - [6.1.1 The LLM-assisted analyzer + `HybridChunker` (WP06)](#611-the-llm-assisted-analyzer--hybridchunker-wp06)
+        - [Pipeline order](#pipeline-order)
+          - [Stage A — analyse (LLM)](#stage-a--analyse-llm)
+          - [Stage B — chunk, embed, persist (local)](#stage-b--chunk-embed-persist-local)
+        - [1. `Bs4TextExtractor` — pre-processor, not the analyzer](#1-bs4textextractor--pre-processor-not-the-analyzer)
+        - [2. `OpenAIPageAnalyzer` — structured extraction via JSON-schema](#2-openaipageanalyzer--structured-extraction-via-json-schema)
+        - [3. `HybridChunker` — one `Chunk` per `SemanticChunk`](#3-hybridchunker--one-chunk-per-semanticchunk)
+        - [4. Why two paths (`fixed_size` vs `hybrid`)](#4-why-two-paths-fixed_size-vs-hybrid)
+        - [5. End-to-end trace of one window, on one call](#5-end-to-end-trace-of-one-window-on-one-call)
+        - [Failure injection matrix (WP06 path)](#failure-injection-matrix-wp06-path)
+    - [6.2 Answering workflow (LangGraph)](#62-answering-workflow-langgraph)
+  - [7. The adapter layer](#7-the-adapter-layer)
+  - [8. The composition root](#8-the-composition-root)
+  - [9. Observability: one request\_id across all layers](#9-observability-one-request_id-across-all-layers)
+  - [10. Security: secret scrubbing](#10-security-secret-scrubbing)
+  - [11. Configuration](#11-configuration)
+  - [12. Local development end-to-end](#12-local-development-end-to-end)
+  - [13. Walkthroughs — tracing a request from end to end](#13-walkthroughs--tracing-a-request-from-end-to-end)
+    - [13.1 Walkthrough: `POST /ask`](#131-walkthrough-post-ask)
+    - [13.2 Walkthrough: ingestion Job](#132-walkthrough-ingestion-job)
+  - [14. Glossary](#14-glossary)
    - [13.1 Walkthrough: `POST /ask`](#131-walkthrough-post-ask)
    - [13.2 Walkthrough: ingestion Job](#132-walkthrough-ingestion-job)
 14. [Glossary](#14-glossary)
@@ -120,7 +136,7 @@ flowchart TB
     COMPOSITION --> ADAPTERS
     COMPOSITION --> APPLICATION
     ADAPTERS --> DOMAIN
-    ADAPTERS --> APPLICATION
+    ADAPTERS -. allowed, not used today .-> APPLICATION
     APPLICATION --> DOMAIN
 ```
 
@@ -132,6 +148,14 @@ What lives where:
 | **application** | `src/support_bot/application/` | Use cases (`IngestionService.run`, the LangGraph workflow). Orchestrates ports. | domain | SDKs (`langchain`, `chromadb`, ...), `pydantic-settings` |
 | **adapters** | `src/support_bot/adapters/` | Concrete implementations of the ports: HTTP fetcher, OpenAI answerer, Chroma vector store, sentence-transformers embedder, LangGraph nodes, lexical reranker. | domain, application, SDKs | `composition` |
 | **composition** | `src/support_bot/composition/` | The single place that wires adapters to ports and builds the FastAPI app / CLI Job. Imports `pydantic-settings`. | all layers | — |
+
+> **Note: `adapters → application` is permitted by `import-linter` but not
+> exercised in the current codebase.** Every adapter imports only from
+> `domain/` (entities, ports, errors). The arrow is left in the diagram
+> for completeness because the rule allows it — if a future adapter
+> needed to wrap a use case (e.g. a Temporal adapter binding the
+> LangGraph node functions into a long-running workflow), it would
+> be the right place to do that.
 
 `import-linter` enforces these rules in CI; see
 `tests/architecture/test_imports.py`.
@@ -335,6 +359,130 @@ Both are **pure orchestrators**: they take their dependencies
 **constructor / kwarg arguments**. They never import from `adapters/`
 or `composition/`. This makes them testable with hand-written fakes
 (`tests/fakes/...`).
+
+### 6.0 How the LangGraph workflow is composed
+
+The LangGraph workflow lives in three layers — the **ports** in
+`domain/`, the **graph + nodes** in `application/`, and the **adapter
+choice + runtime tracer** in `composition/`. Only `application/answering/graph.py`
+imports `langgraph.graph`; everything else uses pure Python protocols.
+
+```mermaid
+flowchart TB
+    subgraph DOM["domain/answering/ports.py"]
+        P_RET["Protocol Retriever"]
+        P_POL["Protocol LowConfidencePolicy"]
+        P_GEN["Protocol AnswerGenerator"]
+    end
+
+    subgraph APP["application/answering/graph.py"]
+        NODES["node functions<br/>retrieve_node / guard_node<br/>generate_node / refuse_node"]
+        DECIDE["_decide()<br/>returns Literal['generate','refuse','__end__']"]
+        WORKFLOW["LangGraphWorkflow<br/>(holds the 3 ports + tracer)"]
+        COMPILE[".compile()"]
+        SG["StateGraph(AgentState)<br/>add_node / add_edge<br/>add_conditional_edges<br/>-> CompiledStateGraph"]
+    end
+
+    subgraph COMP["composition/api_app.py"]
+        AD_RET["ChromaRetriever<br/>(or FakeRetriever in tests)"]
+        AD_POL["ThresholdLowConfidencePolicy(0.5)<br/>(or FakeLowConfidencePolicy)"]
+        AD_GEN["OpenAIAnswerGenerator<br/>(or FakeAnswerGenerator)"]
+        WIRE["build_workflow()<br/>retriever=…, policy=…, generator=…<br/>tracer=get_tracer('support_bot.workflow')"]
+    end
+
+    AD_RET -.conforms to.-> P_RET
+    AD_POL -.conforms to.-> P_POL
+    AD_GEN -.conforms to.-> P_GEN
+
+    WIRE -->|"retriever=…, policy=…, generator=…"| WORKFLOW
+    WORKFLOW --> COMPILE
+    COMPILE -->|"add_node(bound callables)"| SG
+    SG --> COMPILE
+
+    NODES -->|"call port methods"| P_RET
+    NODES -->|"call port methods"| P_POL
+    NODES -->|"call port methods"| P_GEN
+
+    DECIDE -->|"consults policy"| P_POL
+```
+
+**Step-by-step at startup:**
+
+1. **Composition root picks adapters.** `composition/api_app.py`
+   instantiates concrete `Retriever` / `LowConfidencePolicy` /
+   `AnswerGenerator` implementations (`ChromaRetriever`,
+   `ThresholdLowConfidencePolicy(0.5)`, `OpenAIAnswerGenerator`). Tests
+   inject fakes from `tests/fakes/answering/` instead.
+2. **Composition root wires the workflow.** The factory passes the
+   three adapters (and an OTel tracer) into
+   `LangGraphWorkflow(retriever=…, policy=…, generator=…, tracer=…)`.
+3. **`compile()` builds the `StateGraph`.** Inside
+   `application/answering/graph.py`:
+   - `graph = StateGraph(AgentState)` creates an empty graph typed on
+     the Pydantic `AgentState` schema.
+   - Five bound callables are added as nodes: `_retrieve`, `_guard`,
+     `_generate`, `_refuse` (each one is a 2-line closure that
+     forwards `state` to the corresponding pure node function with
+     the bound port already in scope).
+   - Edges are added: `START → retrieve → guard`, then
+     `guard → {generate | refuse | __end__}` via a conditional edge
+     keyed by the `_decide_typed` function, then
+     `{generate, refuse} → END`.
+   - `graph.compile()` returns a **stateless, reentrant**
+     `CompiledStateGraph` — the same instance can serve every
+     request, no per-request rebuild.
+
+**Per request (the runtime view):**
+
+```mermaid
+sequenceDiagram
+    participant API as FastAPI route
+    participant CG as CompiledStateGraph
+    participant RT as retrieve_node
+    participant GD as guard_node
+    participant DC as _decide (policy)
+    participant GN as generate_node
+    participant RF as refuse_node
+
+    API->>CG: invoke(initial AgentState)
+    CG->>RT: _retrieve(state)
+    RT-->>CG: {retrieved_chunks, trace: trace+["retrieve"]}
+    CG->>GD: _guard(state)
+    GD-->>CG: {trace: trace+["guard"]}
+    CG->>DC: _decide_typed(state)
+    DC-->>CG: Literal["generate" | "refuse" | "__end__"]
+    alt generate
+        CG->>GN: _generate(state)
+        GN-->>CG: {answer, confidence="high", trace: trace+["generate"]}
+    else refuse
+        CG->>RF: _refuse(state)
+        RF-->>CG: {answer="I cannot answer…", confidence="low", trace: trace+["refuse"]}
+    end
+    CG-->>API: final AgentState
+```
+
+**Why this shape (not "use case in adapters"):**
+
+- `application/answering/graph.py` is the **only** file that imports
+  `langgraph`. Moving the `StateGraph` to `adapters/` would either
+  drag `langgraph` into a layer that might not need it, or leave the
+  use case with no real home.
+- The graph builder is a **class** (`LangGraphWorkflow`), not a
+  free function, so the OTel tracer can be held as instance state.
+  The tracer is resolved at instantiation (`get_tracer(...)`), which
+  means tests can pass a custom tracer and use an
+  `InMemorySpanExporter` to assert span attributes without mocking
+  the global provider.
+- Node bodies (`retrieve_node`, `guard_node`, ...) take **only
+  ports** as keyword args and return `dict[str, Any]` partial state
+  updates. They never construct adapters, never read environment
+  variables, never log directly. Each one is wrapped in an OTel span
+  `node.<name>` with `request.id`, `route`, and (for `retrieve`)
+  `retrieval.top1_similarity` + `retrieval.candidate_count` as
+  attributes.
+- The conditional edge delegates to `_decide(state, policy=…)` —
+  **no business logic in the edge**. Swapping the policy is a
+  one-line change at the composition root.
 
 ### 6.1 Ingestion use case
 
@@ -739,6 +887,199 @@ invoked by `application/answering/answering_service.py`:
                           if final.retrieved_chunks else 0.0,
         )
 ```
+
+#### 6.2.1 State mutation timeline
+
+`AgentState` is a **Pydantic v2 frozen model** (`frozen=True`),
+which makes it effectively immutable. Every node interaction
+produces a **new** `AgentState` instance; the previous one is
+discarded. LangGraph's internal scheduler holds the lineage of
+instances — request N's state never collides with request N+1's,
+which is what lets `CompiledStateGraph` be reentrant across
+threads (per `graph.py:371-372`).
+
+The mutation timeline below traces every field change for a
+successful answer. The same shape applies to a refusal — only
+the `answer_text` differs and `confidence` stays `"low"`.
+
+**At a glance — which node / edge touches which field:**
+
+```mermaid
+flowchart LR
+    subgraph prior["<b>PRIOR state</b> (read-only input)"]
+        RC1["retrieved_chunks: ∅"]
+        AT1["answer_text: ''"]
+        CF1["confidence: 'low'"]
+        TR1["trace: ∅"]
+    end
+
+    subgraph after["<b>NEXT state</b> (written by the node's dict return)"]
+        RC2["retrieved_chunks: [c1..ck]"]
+        AT2["answer_text: '...'<br/>or refusal text"]
+        CF2["confidence: 'high' or 'low'"]
+        TR2["trace: ['retrieve', 'guard', 'generate' | 'refuse']"]
+    end
+
+    %% Stage 1 — retrieve_node (reads chunks, writes chunks + trace)
+    RN["retrieve_node"]:::mut
+    RN ==read==> RC1
+    RN ==write==> RC2
+    RN ==append==> TR2
+
+    %% Stage 2 — guard_node (reads chunks, appends only)
+    GN["guard_node"]:::pass
+    GN ==read==> RC1
+    GN ==append==> TR2
+
+    %% Stage 3 — _guard_edge (pure read; emits routing literal)
+    E["_guard_edge<br/>(policy)"]:::read
+    E ==read==> RC2
+    E -.->|"returns Literal"| DEC{"generate<br/>or refuse?"}:::dec
+
+    %% Stage 4a — generate_node (writes answer + confidence + trace)
+    GN2["generate_node"]:::mut
+    GN2 ==read==> RC2
+    GN2 ==write==> AT2
+    GN2 ==write==> CF2
+    GN2 ==append==> TR2
+
+    %% Stage 4b — refuse_node (writes answer + confidence + trace)
+    RF["refuse_node"]:::mut
+    RF ==write==> AT2
+    RF ==write==> CF2
+    RF ==append==> TR2
+
+    %% Runtime order (left-to-right = graph.compile() execution sequence):
+    %%   START -> retrieve -> guard ->[_guard_edge]-> generate -> END
+    %%                                            -> refuse    -> END
+    RN  -->|"t1"| GN
+    GN  -->|"t2"| E
+    E   -->|"t3"| DEC
+    DEC -->|"t3a<br/>(policy: not refuse)"| GN2
+    DEC -->|"t3b<br/>(policy: refuse)"| RF
+
+    classDef mut fill:#fde68a,stroke:#92400e,stroke-width:2px,color:#1a1a1a;
+    classDef pass fill:#e0e7ff,stroke:#3730a3,color:#1a1a1a;
+    classDef read fill:#f1f5f9,stroke:#475569,color:#1a1a1a;
+    classDef dec fill:#fee2e2,stroke:#991b1b,color:#1a1a1a;
+```
+
+**How to read it:**
+
+The diagram is split into **two parallel subgraphs** —
+`<b>PRIOR state</b>` on the left (the input the node sees)
+and `<b>NEXT state</b>` on the right (the partial update
+the node returns, applied via `model_copy(update=...)`).
+Every node has three kinds of edges:
+
+- `==read==>` (thick) — the node reads this field from the
+  prior state.
+- `==write==>` (thick) — the node writes a new value to this
+  field in the next state.
+- `==append==>` (thick) — the node appends its name to the
+  `trace` list.
+
+A node that has **only** `==read==>` and/or `==append==>`
+edges (and no `==write==>`) is **non-mutating in business
+terms**: `guard_node` and `_guard_edge` both fit this — the
+former appends to `trace`, the latter only reads and routes.
+
+A node that has any `==write==>` edge mutates a business
+field:
+
+| Node | Writes | Why |
+|---|---|---|
+| `retrieve_node` | `retrieved_chunks` (and appends `"retrieve"`) | Embeds the question and stores the top-k chunks |
+| `generate_node` | `answer_text`, `confidence` (and appends `"generate"`) | LLM-produced answer; confidence is set to `"high"` |
+| `refuse_node` | `answer_text`, `confidence` (and appends `"refuse"`) | Refusal string from `policy.refusal_message()`; confidence stays `"low"` |
+| `guard_node` | (none — only appends `"guard"`) | The decision lives in the conditional edge, not here |
+| `_guard_edge` | (none) | Pure read; emits a path literal |
+
+`guard_node` writes nothing business-relevant, yet it appears
+in every trace. That's deliberate — it preserves the topology
+invariant *"START → retrieve → guard →[conditional]→ generate
+→ END"* and gives every request a uniform `trace` shape for
+audit-log filtering.
+
+```mermaid
+sequenceDiagram
+    participant API as AnsweringService.answer
+    participant R as retrieve_node
+    participant G as guard_node
+    participant E as _guard_edge (policy)
+    participant GN as generate_node
+
+    Note over API: t0: initial state (empty except request_id, question)
+    API->>R: invoke(S0)
+    Note over R: AgentState(request_id, question="…",<br/>retrieved_chunks=∅, answer_text="",<br/>confidence="low", trace=∅)
+    R->>R: retriever.retrieve(question, k=4)
+    R-->>API: {"retrieved_chunks": [c1..c4],<br/>"trace": ∅ + ["retrieve"]}
+    Note over API: t1: S1 = S0.model_copy(update=above)
+    Note over API: S1.retrieved_chunks = [c1..c4]<br/>S1.trace = ["retrieve"]<br/>(answer_text, confidence unchanged)
+    API->>G: invoke(S1)
+    G-->>API: {"trace": ["retrieve"] + ["guard"]}
+    Note over API: t2: S2 = S1.model_copy(update=above)
+    Note over API: S2.trace = ["retrieve", "guard"]<br/>(no other fields change)
+    API->>E: invoke(S2)
+    E->>E: policy.should_refuse(S2.retrieved_chunks)
+    E-->>API: Literal["generate"]  (or "refuse")
+    alt should_refuse is False (top-1 similarity ≥ 0.5)
+        API->>GN: invoke(S2)
+        GN->>GN: generator.generate(S2.question, S2.retrieved_chunks)
+        GN-->>API: {"answer_text": "…",<br/>"confidence": "high",<br/>"trace": ["retrieve","guard"] + ["generate"]}
+        Note over API: t3: S3 = S2.model_copy(update=above)
+        Note over API: S3.answer_text = "…", confidence = "high"<br/>S3.trace = ["retrieve", "guard", "generate"]
+    else should_refuse is True
+        API->>GN: invoke(S2)  (refuse_node, same shape)
+        GN-->>API: {"answer_text": "I cannot answer…",<br/>"confidence": "low",<br/>"trace": [..., "refuse"]}
+        Note over API: t3: S3.refusal_answer + trace=["refuse"]
+    end
+    API->>API: Answer(text=S3.answer_text,<br/>confidence=S3.confidence,<br/>trace=tuple(S3.trace),<br/>top_similarity=S3.retrieved_chunks[0].similarity)
+```
+
+**Per-tick state lineage, in one row per stage:**
+
+| Tick | Stage | Mutates | New vs prior state |
+|---|---|---|---|
+| **t0** | `AnsweringService.answer()` builds initial state | `request_id`, `question` (caller-supplied) | `S0` — first instance |
+| **t1** | `retrieve_node` returns `{retrieved_chunks, trace}` | `retrieved_chunks` populated, `trace` gains `"retrieve"` | `S1 = S0.model_copy(update={"retrieved_chunks": …, "trace": ["retrieve"]})` |
+| **t2** | `guard_node` returns `{trace}` | `trace` gains `"guard"` | `S2 = S1.model_copy(update={"trace": ["retrieve", "guard"]})` |
+| **t3** | `_guard_edge` returns a path literal — does **not** mutate state | n/a (edge function is read-only on `state`) | `S2` reused as input to the next node |
+| **t4** | `generate_node` returns `{answer_text, confidence, trace}` (or `refuse_node` returns the same shape with refusal text + `"low"`) | `answer_text`, `confidence`, `trace` gains final node name | `S3 = S2.model_copy(update=…)` |
+| **t5** | `AnsweringService` packs `S3` into the `Answer` DTO | none — final read | `S3.trace` is the visible audit log |
+
+Three things worth internalising from this:
+
+1. **The conditional edge is read-only.** `_guard_edge` returns
+   a path literal; it never touches `state`. The decision lives
+   in the edge so a future maintainer reading the graph
+   topology sees the routing logic in one place rather than
+   mixed into the `guard_node` body (AGENTS.md §1.5).
+
+2. **Every return value is a *partial* update.** Nodes return
+   `dict[str, Any]`. LangGraph applies them via
+   `model_copy(update=...)`, so an empty `{}` would be a no-op
+   and a `{"trace": …}` returns only touches `trace`. This is
+   why each node lists exactly the keys it owns — adding
+   another key to a node's return spreads the write surface
+   across files and makes the lineage harder to reason about.
+
+3. **The frozen model + `model_copy(update=...)` pair is what
+   makes reentrancy safe.** If two requests are in-flight on
+   the same `CompiledStateGraph`, they each carry their own
+   lineage (`S0_a … S4_a` for request A, `S0_b … S4_b` for
+   request B). Pydantic refuses in-place mutation; LangGraph
+   only sees the dict returned by each node, never the
+   underlying model object. There's no shared mutable state
+   for threads to race on.
+
+The trace at `S3.trace` is exactly what the API serialises
+into the response payload (`Answer.trace`) and the OTel span
+attribute you can filter on in your collector. A request that
+ends with `["retrieve", "guard", "refuse"]` tells you the guard
+fired before any LLM call was made; `["retrieve", "guard",
+"generate"]` tells you the full pipeline ran. That's the
+primary triage signal for FR-013 (traceability).
 
 ---
 
