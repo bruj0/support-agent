@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP05"
 title: "Data Plane & Storage — StorageClass, ECR, DLM snapshots"
-lane: "doing"
+lane: "for_review"
 dependencies:
   - "WP02"
   - "WP03"
@@ -23,6 +23,10 @@ history:
     lane: "doing"
     agent: "cursor"
     action: "started implementation"
+  - timestamp: "2026-09-12T19:15:00+00:00"
+    lane: "for_review"
+    agent: "cursor"
+    action: "implementation complete, ready for review"
 ---
 
 # WP05 — Data Plane & Storage
