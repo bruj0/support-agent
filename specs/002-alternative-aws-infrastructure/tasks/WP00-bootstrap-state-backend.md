@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP00"
 title: "Bootstrap state backend (S3 + DynamoDB + KMS CMK)"
-lane: "for_review"
+lane: "doing"
 dependencies: []
 subsystem: "S0 (one-shot bootstrap)"
 misfits_addressed:
@@ -9,6 +9,8 @@ misfits_addressed:
 abstract_components:
   - "StateBucket (from S1 plan)"
 agent: "spec-bridge-implement"
+reviewed_by: "spec-bridge-review"
+review_status: "in_progress"
 tdd_red_clean: true
 build_validated: true
 history:
@@ -24,6 +26,10 @@ history:
     lane: "for_review"
     agent: "spec-bridge-implement"
     action: "implementation complete, ready for review"
+  - timestamp: "2026-09-12T10:05:00+00:00"
+    lane: "doing"
+    agent: "spec-bridge-review"
+    action: "review started"
 ---
 
 # WP00 — Bootstrap state backend
