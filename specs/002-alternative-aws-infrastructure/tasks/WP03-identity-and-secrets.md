@@ -16,6 +16,8 @@ abstract_components:
   - "PodIdentityAssociations (from S3 plan)"
   - "GithubOidc (from S3 plan)"
 agent: "cursor"
+tdd_red_clean: true
+build_validated: false
 history:
   - timestamp: "2026-09-12T15:05:00+00:00"
     lane: "doing"
