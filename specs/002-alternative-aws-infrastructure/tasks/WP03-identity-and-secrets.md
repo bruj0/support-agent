@@ -17,7 +17,7 @@ abstract_components:
   - "GithubOidc (from S3 plan)"
 agent: "cursor"
 tdd_red_clean: true
-build_validated: false
+build_validated: true
 history:
   - timestamp: "2026-09-12T15:05:00+00:00"
     lane: "doing"
