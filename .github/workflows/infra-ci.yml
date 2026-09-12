@@ -25,3 +25,17 @@ jobs:
       - name: tofu validate (bootstrap)
         working-directory: infra/bootstrap
         run: tofu init -backend=false && tofu validate
+      - name: helm lint
+        working-directory: deploy/helm/support-bot
+        run: |
+          helm lint . --values values-prod.yaml
+          helm lint . --values values-dev.yaml
+      - name: helm template + secret scan
+        working-directory: deploy/helm/support-bot
+        run: |
+          helm template . --values values-prod.yaml > /tmp/rendered-prod.yaml
+          helm template . --values values-dev.yaml > /tmp/rendered-dev.yaml
+          cat /tmp/rendered-prod.yaml /tmp/rendered-dev.yaml | \
+            ( ! grep -E 'sk-[A-Za-z0-9]{32,}' ) && \
+            ( ! grep -E 'OPENAI_API_KEY=[^"]*sk-' ) && \
+            ( ! grep -E 'CHROMA_AUTH_TOKEN=[^"]*[A-Za-z0-9]{8,}' )

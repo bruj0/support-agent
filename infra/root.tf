@@ -20,9 +20,20 @@ module "cluster" {
   vpc_endpoint_security_group_id = module.foundation.vpc_endpoint_security_group_id
   cluster_name                   = local.cluster_name
   admin_cidr                     = var.admin_cidr
-  cmk_arn                        = var.cmk_arn # from WP03
+  cmk_arn                        = module.identity.cmk_arn # from WP03
   baseline_instance_type         = var.baseline_instance_type
   baseline_desired_size          = var.baseline_desired_size
   karpenter_version              = var.karpenter_version
-  karpenter_iam_role_arn         = var.karpenter_iam_role_arn # from WP03
+  karpenter_iam_role_arn         = module.cluster.karpenter_iam_role_arn # from cluster module (self-ref for WP02-created node role; dedicated controller role deferred)
+}
+
+module "identity" {
+  source = "./modules/identity"
+
+  env                   = var.env
+  eks_cluster_name      = module.cluster.cluster_name
+  eks_oidc_provider_arn = module.cluster.oidc_provider_arn
+  openai_api_key        = var.openai_api_key
+  chroma_auth_token     = var.chroma_auth_token
+  domain_suffix         = var.domain_suffix
 }
