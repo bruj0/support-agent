@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP03"
 title: "Identity & Secrets — KMS CMKs, Secrets Manager, IAM roles, Pod Identity associations"
-lane: "for_review"
+lane: "doing"
 dependencies:
   - "WP02"
 subsystem: "S3 Identity & Secrets"
@@ -16,6 +16,8 @@ abstract_components:
   - "PodIdentityAssociations (from S3 plan)"
   - "GithubOidc (from S3 plan)"
 agent: "cursor"
+reviewed_by: "spec-bridge-review"
+review_status: "in_progress"
 tdd_red_clean: true
 build_validated: true
 history:
@@ -27,6 +29,10 @@ history:
     lane: "for_review"
     agent: "cursor"
     action: "implementation complete, ready for review"
+  - timestamp: "2026-09-12T16:00:00+00:00"
+    lane: "doing"
+    agent: "spec-bridge-review"
+    action: "review started"
 ---
 
 # WP03 — Identity & Secrets
