@@ -18,6 +18,7 @@ abstract_components:
   - "IngressResource (from S4 plan)"
   - "AlbAccessLogsBucket (from S4 plan)"
 agent: "cursor"
+tdd_red_clean: true
 history:
   - timestamp: "2026-09-12T16:55:00+00:00"
     lane: "doing"
