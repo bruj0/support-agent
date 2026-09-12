@@ -60,15 +60,3 @@ variable "karpenter_version" {
   type    = string
   default = "1.0.0"
 }
-
-variable "cmk_arn" {
-  type        = string
-  description = "Per-env CMK ARN from WP03; placeholder until WP03 ships"
-  default     = "arn:aws:kms:eu-central-1:000000000000:key/placeholder"
-}
-
-variable "karpenter_iam_role_arn" {
-  type        = string
-  description = "Per-env Karpenter role ARN from WP03; placeholder until WP03 ships"
-  default     = "arn:aws:iam::000000000000:role/placeholder"
-}
