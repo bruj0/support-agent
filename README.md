@@ -741,6 +741,18 @@ tests/
 
 ---
 
+## Infrastructure (OpenTofu / AWS)
+
+An alternative AWS deployment is provisioned by OpenTofu under [`infra/`](infra/).
+See [`infra/bootstrap/README.md`](infra/bootstrap/README.md) for the one-shot
+state-backend bootstrap, and [`infra/README.md`](infra/README.md) (written in
+WP07) for the per-environment apply procedure. The chart is **rendered and
+validated** (`helm lint` + `helm template --validate` + secret scan) by the
+infra CI; the actual `helm install` is a downstream CI/CD feature, not part of
+this OpenTofu code.
+
+---
+
 ## Production deployment (Helm chart)
 
 The Helm chart at [`deploy/helm/support-bot/`](deploy/helm/support-bot/)

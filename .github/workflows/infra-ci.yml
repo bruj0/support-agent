@@ -1,0 +1,27 @@
+name: infra-ci
+on:
+  pull_request:
+    paths:
+      - 'infra/**'
+      - 'deploy/helm/support-bot/templates/**'
+      - 'deploy/helm/support-bot/values*.yaml'
+  push:
+    branches: [main]
+    paths:
+      - 'infra/**'
+      - 'deploy/helm/support-bot/templates/**'
+      - 'deploy/helm/support-bot/values*.yaml'
+jobs:
+  lint-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.6.0
+      - name: tofu fmt -check
+        run: |
+          tofu fmt -check -recursive infra/
+      - name: tofu validate (bootstrap)
+        working-directory: infra/bootstrap
+        run: tofu init -backend=false && tofu validate
