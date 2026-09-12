@@ -37,3 +37,18 @@ module "identity" {
   chroma_auth_token     = var.chroma_auth_token
   domain_suffix         = var.domain_suffix
 }
+
+module "edge" {
+  source = "./modules/edge"
+
+  env                            = var.env
+  cluster_name                   = module.cluster.cluster_name
+  cluster_security_group_id      = module.cluster.cluster_security_group_id
+  vpc_id                         = module.foundation.vpc_id
+  public_subnet_ids              = module.foundation.public_subnet_ids
+  parent_zone_id                 = var.parent_zone_id
+  domain_suffix                  = var.domain_suffix
+  alb_controller_role_arn        = module.identity.alb_controller_role_arn
+  cmk_arn                        = module.identity.cmk_arn
+  vpc_endpoint_security_group_id = module.foundation.vpc_endpoint_security_group_id
+}
