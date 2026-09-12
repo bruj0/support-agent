@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP02"
 title: "Cluster & Compute — EKS, OIDC, baseline MNG, Karpenter v1"
-lane: "planned"
+lane: "doing"
 dependencies:
   - "WP01"
 subsystem: "S2 Cluster & Compute"
@@ -15,8 +15,12 @@ abstract_components:
   - "BaselineNodeGroup (from S2 plan)"
   - "KarpenterController (from S2 plan)"
   - "NodePoolOutputs (from S2 plan)"
-agent: ""
-history: []
+agent: "cursor"
+history:
+  - timestamp: "2026-09-12T13:05:00+00:00"
+    lane: "doing"
+    agent: "cursor"
+    action: "started implementation"
 ---
 
 # WP02 — Cluster & Compute
