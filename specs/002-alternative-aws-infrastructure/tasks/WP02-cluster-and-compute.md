@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP02"
 title: "Cluster & Compute — EKS, OIDC, baseline MNG, Karpenter v1"
-lane: "for_review"
+lane: "doing"
 dependencies:
   - "WP01"
 subsystem: "S2 Cluster & Compute"
@@ -16,6 +16,8 @@ abstract_components:
   - "KarpenterController (from S2 plan)"
   - "NodePoolOutputs (from S2 plan)"
 agent: "cursor"
+reviewed_by: "spec-bridge-review"
+review_status: "in_progress"
 tdd_red_clean: true
 build_validated: true
 history:
@@ -27,6 +29,10 @@ history:
     lane: "for_review"
     agent: "cursor"
     action: "implementation complete, ready for review"
+  - timestamp: "2026-09-12T14:00:00+00:00"
+    lane: "doing"
+    agent: "spec-bridge-review"
+    action: "review started"
 ---
 
 # WP02 — Cluster & Compute
