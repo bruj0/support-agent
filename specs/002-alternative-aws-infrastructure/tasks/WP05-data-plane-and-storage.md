@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP05"
 title: "Data Plane & Storage — StorageClass, ECR, DLM snapshots"
-lane: "for_review"
+lane: "doing"
 dependencies:
   - "WP02"
   - "WP03"
@@ -16,6 +16,8 @@ abstract_components:
   - "EcrRepository (from S5 plan)"
   - "DlmSnapshotPolicy (from S5 plan)"
 agent: "cursor"
+reviewed_by: "spec-bridge-review"
+review_status: "in_progress"
 tdd_red_clean: true
 build_validated: true
 history:
@@ -27,6 +29,10 @@ history:
     lane: "for_review"
     agent: "cursor"
     action: "implementation complete, ready for review"
+  - timestamp: "2026-09-12T19:25:00+00:00"
+    lane: "doing"
+    agent: "spec-bridge-review"
+    action: "review started"
 ---
 
 # WP05 — Data Plane & Storage
