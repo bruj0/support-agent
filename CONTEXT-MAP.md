@@ -2,8 +2,8 @@
 version: "1"
 project_name: "Support Bot RAG + AWS Infrastructure"
 created: "2026-09-12T13:00:00+00:00"
-updated: "2026-09-12T16:50:00+00:00"
-contexts_count: 5
+updated: "2026-09-12T18:30:00+00:00"
+contexts_count: 6
 ---
 
 # Context Map
@@ -36,6 +36,12 @@ canonical vocabulary; cross-context relationships are mapped below.
   Controller helm release, Ingress resource, ALB access logs bucket
   (AcmCertificate, Route53Record, Wafv2WebAcl, AlbControllerHelm,
   IngressResource, AlbAccessLogsBucket).
+- [AWS Data Plane & Storage](../infra/modules/storage/CONTEXT.md) — Per-env
+  gp3 StorageClass (Retain + WaitForFirstConsumer), per-env ECR repository
+  (IMMUTABLE tags, scoped repo policy), DLM snapshot policy targeting
+  Cluster+Component tags, additive chart values wiring the Chroma PVC to
+  the StorageClass (Gp3StorageClass, StorageClassValueMerge, EcrRepository,
+  DlmSnapshotPolicy).
 
 ## Inter-Context Relationships
 
@@ -73,3 +79,15 @@ canonical vocabulary; cross-context relationships are mapped below.
   `templates/ingress.yaml` mirrors the same manifest shape under
   `.Values.ingress` so a downstream feature can install the chart and
   rely on the same ALB annotations.
+- **AWS Data Plane & Storage → AWS Cluster & Compute**: Storage module
+  references `cluster_name` from Cluster via root.tf to log; the
+  storage module creates the StorageClass that EKS dynamically binds
+  PVCs to.
+- **AWS Data Plane & Storage → AWS Identity & Secrets**: Storage module
+  consumes `github_actions_role_arn` from Identity to scope the ECR
+  repository policy (only the GHA role can push).
+- **AWS Data Plane & Storage → Support Bot RAG Project**: The additive
+  chart values (`persistence.storageClassName`, `persistence.labels`)
+  flow through Helm into the existing `templates/pvc.yaml`, binding the
+  Chroma PVC to Gp3StorageClass and tagging it for DlmSnapshotPolicy
+  selection.
