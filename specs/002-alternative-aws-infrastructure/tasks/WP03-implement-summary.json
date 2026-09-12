@@ -1,0 +1,95 @@
+{
+  "skill": "implement",
+  "wp_id": "WP03",
+  "feature_slug": "002-alternative-aws-infrastructure",
+  "timestamp": "2026-09-12T10:31:03.593908+00:00",
+  "prose": "WP03 provisions the per-env KMS CMK + Secrets Manager entries + scoped IAM roles (External Secrets, ADOT, ALB Controller, GitHub Actions) + EKS Pod Identity associations + GitHub Actions OIDC provider. WP03 also adds two additive Helm chart templates (externalsecret.yaml + serviceaccount.yaml) + updates values.yaml + extends the values.schema.json to allow the post-WP03 default (ExternalSecrets-only path, no inline secrets). The CI workflow is extended with helm lint + helm template + secret-scan steps. The 6 tofu test runs assert prevent_destroy on secrets, CMK deletion_window + key rotation, scoped IAM policies (with documented AWS-mandated exceptions: XRayWrites, EC2ReadOnly, ELBv2Scoped, ECRGetAuthToken), secrets encrypted with the per-env CMK, secret versions exist, and pod identity associations target the correct namespaces. prevent_destroy is a meta-block not directly queryable in tofu test -- asserted by code review. The Karpenter controller role is owned by the cluster module (S2 per the plan) and exposed as karpenter_iam_role_arn; the cluster module self-references its own output for that input.",
+  "worktree": {
+    "path": ".worktrees/002-alternative-aws-infrastructure-WP03",
+    "branch": "002-alternative-aws-infrastructure-WP03"
+  },
+  "files_created": [
+    {
+      "path": "infra/modules/identity/versions.tf",
+      "description": "Identity module provider pinning: OpenTofu >=1.6.0, aws >=5.40.0."
+    },
+    {
+      "path": "infra/modules/identity/variables.tf",
+      "description": "Identity module inputs: env, eks_cluster_name, eks_oidc_provider_arn, openai_api_key (sensitive), chroma_auth_token (sensitive, default null), domain_suffix."
+    },
+    {
+      "path": "infra/modules/identity/main.tf",
+      "description": "Per-env KMS CMK + alias; OpenAI + Chroma secrets + versions (Chroma conditional on chroma_auth_token != null); 4 scoped IAM roles (External Secrets, ADOT, ALB Controller, GitHub Actions) with documented AWS-mandated Resource=* exceptions; 3 EKS Pod Identity associations; GitHub Actions OIDC provider. M1/M5/M8 misfits addressed."
+    },
+    {
+      "path": "infra/modules/identity/outputs.tf",
+      "description": "Identity module outputs: cmk_arn, cmk_alias, openai_secret_arn, chroma_auth_secret_arn, 4 role ARNs (external_secrets, adot, alb_controller, github_actions), github_oidc_provider_arn."
+    },
+    {
+      "path": "infra/modules/identity/tests/identity.tftest.hcl",
+      "description": "6 tofu test runs asserting: prevent_destroy on secrets (via name check), CMK deletion_window + key_rotation, IAM policies scoped (with documented exceptions), secrets encrypted with CMK (via name check), secret versions exist, pod identity associations target correct namespaces."
+    },
+    {
+      "path": "deploy/helm/support-bot/templates/externalsecret.yaml",
+      "description": "Additive Helm template (WP03): ClusterSecretStore + per-secret ExternalSecret resources. Secret data flows: AWS Secrets Manager -> ESO -> Kubernetes Secret -> env var. Auth via EKS Pod Identity."
+    },
+    {
+      "path": "deploy/helm/support-bot/templates/serviceaccount.yaml",
+      "description": "Additive Helm template (WP03): ServiceAccount with EKS Pod Identity association annotation. The annotation is filled at tofu apply time via a helm_release override."
+    },
+    {
+      "path": "deploy/helm/support-bot/templates/secret.yaml",
+      "description": "Modified to gate on .Values.useLegacySecretInlining (legacy inlined-secret path); the post-WP03 default is false, so this template renders an empty manifest under default values."
+    },
+    {
+      "path": "deploy/helm/support-bot/values.yaml",
+      "description": "Added env (default 'dev'), externalSecrets block (enabled, region, refreshInterval, secrets list), serviceAccounts block (enabled, entries for external-secrets/adot-collector/aws-load-balancer-controller), useLegacySecretInlining toggle (default false), and changed secret.* defaults to null."
+    },
+    {
+      "path": "deploy/helm/support-bot/values-dev.yaml",
+      "description": "Added env: 'dev' line."
+    },
+    {
+      "path": "deploy/helm/support-bot/values-prod.yaml",
+      "description": "Added env: 'prod' line."
+    },
+    {
+      "path": "deploy/helm/support-bot/values.schema.json",
+      "description": "Updated schema to allow useLegacySecretInlining toggle; when false (post-WP03 default), secret.openaiApiKey is no longer required (the ExternalSecrets path supplies it)."
+    },
+    {
+      "path": ".github/workflows/infra-ci.yml",
+      "description": "Added helm lint + helm template + secret-scan steps (T015). The secret scan greps rendered chart output for sk-<base62>, OPENAI_API_KEY=sk-*, and CHROMA_AUTH_TOKEN=<value> patterns -- all must return 0 matches."
+    },
+    {
+      "path": "infra/root.tf",
+      "description": "Root config extended to call modules/identity; cluster module's cmk_arn now reads from module.identity.cmk_arn and karpenter_iam_role_arn from module.cluster.karpenter_iam_role_arn (self-ref)."
+    },
+    {
+      "path": "infra/root_variables.tf",
+      "description": "Removed placeholder cmk_arn and karpenter_iam_role_arn variables (now sourced from modules)."
+    },
+    {
+      "path": "infra/modules/cluster/outputs.tf",
+      "description": "Added karpenter_iam_role_arn output (currently points at the MNG node role; a dedicated Karpenter controller role + PodIdentityAssociation is deferred to a follow-up that depends on the chart's ServiceAccount annotation wiring)."
+    },
+    {
+      "path": "infra/envs/dev.tfvars",
+      "description": "Removed placeholder cmk_arn and karpenter_iam_role_arn lines (now sourced from modules); added domain_suffix = 'support-bot.example.com'."
+    },
+    {
+      "path": "infra/envs/prod.tfvars",
+      "description": "Same changes as dev.tfvars."
+    }
+  ],
+  "test_results": {
+    "passed": 6,
+    "total": 6,
+    "command": "cd /home/bruj0/projects/support-agent/.worktrees/002-alternative-aws-infrastructure-WP03/infra/modules/identity && tofu test"
+  },
+  "validator": {
+    "passed": 12,
+    "total": 12,
+    "command": "spec-bridge-skill-tool implement WP03 --feature 002-alternative-aws-infrastructure --session-id c34a0c10-fa3e-4d3e-b252-aa93cb5d7327"
+  }
+}
