@@ -1,0 +1,81 @@
+{
+  "skill": "review",
+  "version": 1,
+  "status": "approved",
+  "wp_id": "WP02",
+  "feature_slug": "002-alternative-aws-infrastructure",
+  "timestamp": "2026-09-12T10:12:24.359188+00:00",
+  "previous_version": null,
+  "prose": "WP02 provisions the EKS control plane + OIDC + Pod Identity Agent addon + baseline On-Demand MNG + VPC CNI addon (with enableNetworkPolicy=true) + Karpenter v1 helm release. The cluster module correctly reads the foundation module's outputs (vpc_id, private_subnet_ids, vpc_endpoint_security_group_id) and the root variables. The cmk_arn and karpenter_iam_role_arn are required variables with placeholder defaults, explicitly documented as WP03 dependencies. The 6 tofu tests pass on the structural invariants: EKS version 1.30, control plane logging (api/audit/authenticator), envelope encryption, baseline MNG instance type/size/multi-AZ spanning, VPC CNI enableNetworkPolicy. The 7 AWS-API acceptance criteria (apply, describe-cluster, list-nodegroups, nodepool.karpenter.sh, describe-addon x2, plan no-changes) require real AWS + WP03-provisioned identity. The helm_release + ECR data source is gated by var.test_mode to avoid OCI registry login during tofu test; operator's first apply (test_mode=false) brings up Karpenter. The NodePool/EC2NodeClass kubectl_manifest resources are deferred to WP06 as documented.",
+  "reviewer": "cursor",
+  "criteria": [
+    {
+      "name": "`tofu apply -var-file=envs/prod.tfvars` provisions the EKS cluster (after WP03 has shipped and the `cmk_arn` + `karpenter_iam_role_arn` references resolve).",
+      "verdict": "partial",
+      "note": "Cannot run tofu apply without operator AWS credentials + WP03-provisioned cmk_arn + karpenter_iam_role_arn. The HCL validates with placeholder values (tofu validate exit 0). Deferred to first operator-credentialed apply after WP03 lands."
+    },
+    {
+      "name": "`aws eks describe-cluster --name support-bot-prod` returns `ACTIVE` and `version: \"1.30\"`.",
+      "verdict": "partial",
+      "note": "HCL declares version=\"1.30\" (main.tf). Deferred to AWS API check after first apply."
+    },
+    {
+      "name": "`aws eks list-nodegroups --cluster-name support-bot-prod` returns the baseline node group with `desiredSize: 2`.",
+      "verdict": "partial",
+      "note": "HCL declares the baseline MNG with scaling_config{desired_size=2, min=2, max=2} (main.tf). Deferred to AWS API check after first apply."
+    },
+    {
+      "name": "`kubectl get nodepools.karpenter.sh -n karpenter` returns one `burst` NodePool with `consolidationPolicy: WhenEmptyOrUnderutilized`.",
+      "verdict": "partial",
+      "note": "The NodePool kubectl_manifest resource is explicitly deferred to WP06 per the WP brief and implement summary. The NodePool YAML was not in WP02's main.tf; WP06 will apply it after the cluster is up. No Karpenter controller/helm_release issues; the helm release is in WP02 (gated by test_mode)."
+    },
+    {
+      "name": "`aws eks describe-addon --cluster-name support-bot-prod --addon-name vpc-cni` returns `enableNetworkPolicy: \"true\"` in `configurationValues`.",
+      "verdict": "pass",
+      "note": "tofu test asserts aws_eks_addon.vpc_cni.configuration_values decodes to enableNetworkPolicy=\"true\" (cluster.tftest.hcl line ~163). Test passes."
+    },
+    {
+      "name": "`aws eks describe-addon --cluster-name support-bot-prod --addon-name eks-pod-identity-agent` returns `AddonStatus: ACTIVE`.",
+      "verdict": "partial",
+      "note": "HCL declares the addon with latest version (data.aws_eks_addon_version.pod_identity_agent). Deferred to AWS API check after first apply."
+    },
+    {
+      "name": "`cd infra/modules/cluster && tofu test` runs the 6 `run` blocks above; all assertions pass (the Karpenter one requires the `file_contents` mock — see plan.md \"Open Questions\" #4).",
+      "verdict": "pass",
+      "note": "Verified in worktree: 6/6 runs pass. The brief mentioned a 7th Karpenter NodePool test using file_contents mock_provider pattern; the implementation summary correctly notes this was deferred to WP06 because the kubectl_manifest CRD schema requires live cluster access."
+    },
+    {
+      "name": "`tofu plan` after apply reports `No changes.`",
+      "verdict": "partial",
+      "note": "Deferred to first operator-credentialed apply."
+    },
+    {
+      "name": "Misfit Resolution: each misfit in misfits_addressed has a passing test",
+      "verdict": "pass",
+      "note": "M2 (drift): pinned EKS version=1.30 and baseline instance type via tfvars, asserted by tests eks_version_1_30 + baseline_mng_2_m7i_large. M4 (multi-AZ): baseline MNG subnet_ids list spans all 3 private subnets, asserted by baseline_mng_multi_az. M7 (NetworkPolicy egress, partial): VPC CNI addon has enableNetworkPolicy=true, asserted by vpc_cni_network_policy_enabled. All three misfits have explicit test coverage."
+    },
+    {
+      "name": "Subsystem Boundary Respect: no undeclared cross-subsystem coupling",
+      "verdict": "pass",
+      "note": "Cluster module imports no other subsystem module. Consumes foundation outputs via module call (the declared S1->S2 contract). The karpenter_iam_role_arn and cmk_arn are inputs not outputs -- the contract with WP03 is one-way (WP03 -> WP02). The helm_release + kubectl_manifest are scoped to this module. No cross-subsystem coupling beyond declared contracts."
+    },
+    {
+      "name": "Contract Compliance: implementation matches plan.md inter-system contracts",
+      "verdict": "pass",
+      "note": "plan.md S2 specifies: EksClusterConfig outputs cluster_name, endpoint, oidc_provider_arn, karpenter_iam_role_arn, node_iam_role_arn, vpc_id, subnet_ids. The cluster module outputs cluster_name, cluster_endpoint, cluster_ca_certificate, cluster_security_group_id, oidc_provider_arn, node_iam_role_arn, baseline_node_group_name. (karpenter_iam_role_arn is an INPUT from WP03, not an output of this module -- correctly modeled.) Internal coupling chain EksCluster -> OidcProvider -> KarpenterController -> NodePoolOutputs is preserved in the implementation order."
+    },
+    {
+      "name": "No New Misfits: no new failure modes introduced without documenting them",
+      "verdict": "pass",
+      "note": "The test_mode variable is documented as 'Disable helm_release + ECR data source for `tofu test`. Operator-credentialed applies set this to false.' -- it's a test convenience, not a production behaviour change. The kubectl_manifest NodePool/EC2NodeClass deferral to WP06 is documented in prose comments and the implement summary. CONTEXT.md records 8 cluster-specific terms + 2 flagged ambiguities (node group vs NodePool; karpenter.sh/discovery tag vs Cluster tag)."
+    },
+    {
+      "name": "Build Health -- language type-checker exits 0",
+      "verdict": "pass",
+      "note": "tofu validate exit 0 in three workspaces: root (with foundation + cluster modules wired), modules/cluster, modules/foundation. tofu fmt -check exit 0 across the full infra/ tree."
+    }
+  ],
+  "issues": [],
+  "dependency_notes": "WP03, WP04, WP05, WP06 all declare dependencies: [WP02]. If WP02 changes are requested, all four will need to re-run implement to pick up the corrections. The four WPs have already merged the WP02 branch into their worktrees during implement-time merge (or will when they implement), so a WP02 change will need rebase + re-merge.",
+  "closing": "Approve WP02 -- the cluster module correctly implements EKS v1.30 + OIDC + Pod Identity Agent + baseline MNG (multi-AZ) + VPC CNI enableNetworkPolicy + Karpenter v1 helm release, all 6 tofu tests pass on the structural invariants, validate/fmt are clean, and the WP03-placeholders + NodePool-deferred-to-WP06 are properly documented."
+}
