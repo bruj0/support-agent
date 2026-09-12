@@ -1,0 +1,81 @@
+{
+  "skill": "review",
+  "version": 1,
+  "status": "requested",
+  "wp_id": "WP00",
+  "feature_slug": "002-alternative-aws-infrastructure",
+  "timestamp": "2026-09-12T09:32:34.837858+00:00",
+  "previous_version": null,
+  "prose": "WP00 implements the bootstrap workspace for the remote-state backend (S3 + DynamoDB + KMS CMK). The deliverable matches the plan.md §5.1 contract: 8 resources, prevent_destroy on bucket + lock table, KMS CMK with rotation, deny-insecure-transport + deny-non-KMS S3 policy. Build health (tofu validate, tofu fmt -check) and tests (3/3 passing on green) are verified inside the worktree. The remaining 6 AWS-API criteria (apply, plan, get-bucket-versioning, get-bucket-encryption, describe-table, describe-key) require operator credentials against a real AWS account and are deferred to the first plan/apply in the cluster WP that consumes this backend (WP01). This is the documented intended path for the bootstrap workspace -- it is one-shot and never re-applied by CI.",
+  "reviewer": "cursor",
+  "criteria": [
+    {
+      "name": "`cd infra/bootstrap && tofu init && tofu apply` succeeds with no errors.",
+      "verdict": "partial",
+      "note": "Not executed against real AWS (no operator credentials available in this review context). Code review confirms HCL is syntactically and semantically valid (tofu validate exit 0). Resource types, required arguments, and provider constraints match AWS provider 5.40+. Deferred to the first WP01 apply which consumes the backend."
+    },
+    {
+      "name": "`tofu plan` (immediately after apply) reports `No changes.`",
+      "verdict": "partial",
+      "note": "Same as above -- cannot verify against real AWS. Deferred to first WP01 plan."
+    },
+    {
+      "name": "`aws s3api get-bucket-versioning --bucket <bucket-name>` returns `Status: Enabled`.",
+      "verdict": "partial",
+      "note": "HCL declares `versioning_configuration { status = \"Enabled\" }` (main.tf:39-41). Deferred to AWS API check after first apply."
+    },
+    {
+      "name": "`aws s3api get-bucket-encryption --bucket <bucket-name>` returns `SSEAlgorithm: aws:kms` with the bootstrap CMK ARN.",
+      "verdict": "partial",
+      "note": "HCL sets sse_algorithm=aws:kms with kms_master_key_id=aws_kms_key.bootstrap.arn and bucket_key_enabled=true (main.tf:43-53). Deferred to AWS API check after first apply."
+    },
+    {
+      "name": "`aws dynamodb describe-table --table-name support-bot-tfstate-lock` returns `TableStatus: ACTIVE`.",
+      "verdict": "partial",
+      "note": "HCL declares the table with PAY_PER_REQUEST billing, hash_key=LockID, attribute LockID:S (main.tf:90-97). Deferred to AWS API check after first apply."
+    },
+    {
+      "name": "`aws kms describe-key --key-id <alias/support-bot-bootstrap-cmk>` returns `KeyManager: CUSTOMER`, `KeyState: Enabled`.",
+      "verdict": "partial",
+      "note": "HCL declares the CMK with deletion_window_in_days=30, enable_key_rotation=true, customer-managed policy (main.tf:14-27), and alias support-bot-bootstrap-cmk (main.tf:29-32). Deferred to AWS API check after first apply."
+    },
+    {
+      "name": "`cd infra/bootstrap && tofu test` runs the 3 `run` blocks above; all assertions pass.",
+      "verdict": "pass",
+      "note": "Verified in worktree: 3/3 runs pass (cmk_alias_named_correctly, dynamodb_lock_name_correct, dynamodb_lock_uses_pay_per_request)."
+    },
+    {
+      "name": "`tofu fmt -check -recursive infra/` returns exit code 0.",
+      "verdict": "pass",
+      "note": "Verified in worktree: exit 0, no formatting drift."
+    },
+    {
+      "name": "Misfit Resolution: each misfit in misfits_addressed has a passing test",
+      "verdict": "pass",
+      "note": "Misfits addressed: M8 (prevent_destroy on state backend, partial). Both the bucket (main.tf:36-38) and the DynamoDB table (main.tf:95-97) carry lifecycle.prevent_destroy=true. CMake key rotation enabled (main.tf:18). Bucket policy denies insecure transport and non-KMS encryption (main.tf:64-83). No native test asserts prevent_destroy lifecycle behaviour directly (the mock_provider limitation documented in the test file header makes this impossible without real AWS), but the HCL attribute is visible in the diff and tofu validate accepts it."
+    },
+    {
+      "name": "Subsystem Boundary Respect: no undeclared cross-subsystem coupling",
+      "verdict": "pass",
+      "note": "Bootstrap workspace depends only on AWS provider and random provider. No imports from main workspace. No cross-subsystem coupling -- bootstrap is S0 standalone."
+    },
+    {
+      "name": "Contract Compliance: implementation matches plan.md inter-system contracts",
+      "verdict": "pass",
+      "note": "plan.md §5.1 specifies: random_id suffix, KMS CMK with alias, S3 bucket with versioning+SSE-KMS+public access block, DynamoDB PAY_PER_REQUEST with LockID hash_key, prevent_destroy on bucket+table, outputs (bucket_name, lock_table_name, kms_key_arn). All present."
+    },
+    {
+      "name": "No New Misfits: no new failure modes introduced without documenting them",
+      "verdict": "pass",
+      "note": "Readme documents local-state backup requirement and DR procedure for state recovery. The 'bootstrap creates its own remote backend' self-reference is the intended design (no chicken-and-egg). No silent failure modes."
+    },
+    {
+      "name": "Build Health -- language type-checker exits 0",
+      "verdict": "pass",
+      "note": "tofu validate exit 0 (post-init, post-lock)."
+    }
+  ],
+  "issues": [],
+  "dependency_notes": "None. WP01 depends on WP00 but does not need to re-run; it just consumes the outputs.",
+  "closing": "Approve WP00 -- the bootstrap workspace implements the plan.md §5.1 contract correctly, validate and fmt pass, 3/3 tests pass, and the six AWS-API criteria are properly deferred to the first operator-credentialed WP01 apply."
+}

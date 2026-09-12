@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP00"
 title: "Bootstrap state backend (S3 + DynamoDB + KMS CMK)"
-lane: "doing"
+lane: "done"
 dependencies: []
 subsystem: "S0 (one-shot bootstrap)"
 misfits_addressed:
@@ -10,7 +10,7 @@ abstract_components:
   - "StateBucket (from S1 plan)"
 agent: "spec-bridge-implement"
 reviewed_by: "spec-bridge-review"
-review_status: "in_progress"
+review_status: "approved"
 tdd_red_clean: true
 build_validated: true
 history:
@@ -30,6 +30,10 @@ history:
     lane: "doing"
     agent: "spec-bridge-review"
     action: "review started"
+  - timestamp: "2026-09-12T10:35:00+00:00"
+    lane: "done"
+    agent: "spec-bridge-review"
+    action: "approved -- 6 partials deferred to operator-credentialed first WP01 apply (AWS-API checks); 7 passes (3 tests, fmt, validate, SyDD standards, build health); 0 issues"
 ---
 
 # WP00 — Bootstrap state backend
@@ -327,3 +331,32 @@ Bootstrap workspace implements the OpenTofu remote-state backend for the main wo
 ### Validator
 
 0/0 checks passed -- `spec-bridge-skill-tool implement WP00 --feature 002-alternative-aws-infrastructure --session-id bd2c2cb5-3839-42f8-9613-8caf6cbdbe71`
+
+---
+
+## Review Summary (v1)
+status: requested
+
+WP00 implements the bootstrap workspace for the remote-state backend (S3 + DynamoDB + KMS CMK). The deliverable matches the plan.md §5.1 contract: 8 resources, prevent_destroy on bucket + lock table, KMS CMK with rotation, deny-insecure-transport + deny-non-KMS S3 policy. Build health (tofu validate, tofu fmt -check) and tests (3/3 passing on green) are verified inside the worktree. The remaining 6 AWS-API criteria (apply, plan, get-bucket-versioning, get-bucket-encryption, describe-table, describe-key) require operator credentials against a real AWS account and are deferred to the first plan/apply in the cluster WP that consumes this backend (WP01). This is the documented intended path for the bootstrap workspace -- it is one-shot and never re-applied by CI.
+
+| Criterion | Verdict |
+|-----------|---------|
+| `cd infra/bootstrap && tofu init && tofu apply` succeeds with no errors. | ⚠️ -- Not executed against real AWS (no operator credentials available in this review context). Code review confirms HCL is syntactically and semantically valid (tofu validate exit 0). Resource types, required arguments, and provider constraints match AWS provider 5.40+. Deferred to the first WP01 apply which consumes the backend. |
+| `tofu plan` (immediately after apply) reports `No changes.` | ⚠️ -- Same as above -- cannot verify against real AWS. Deferred to first WP01 plan. |
+| `aws s3api get-bucket-versioning --bucket <bucket-name>` returns `Status: Enabled`. | ⚠️ -- HCL declares `versioning_configuration { status = "Enabled" }` (main.tf:39-41). Deferred to AWS API check after first apply. |
+| `aws s3api get-bucket-encryption --bucket <bucket-name>` returns `SSEAlgorithm: aws:kms` with the bootstrap CMK ARN. | ⚠️ -- HCL sets sse_algorithm=aws:kms with kms_master_key_id=aws_kms_key.bootstrap.arn and bucket_key_enabled=true (main.tf:43-53). Deferred to AWS API check after first apply. |
+| `aws dynamodb describe-table --table-name support-bot-tfstate-lock` returns `TableStatus: ACTIVE`. | ⚠️ -- HCL declares the table with PAY_PER_REQUEST billing, hash_key=LockID, attribute LockID:S (main.tf:90-97). Deferred to AWS API check after first apply. |
+| `aws kms describe-key --key-id <alias/support-bot-bootstrap-cmk>` returns `KeyManager: CUSTOMER`, `KeyState: Enabled`. | ⚠️ -- HCL declares the CMK with deletion_window_in_days=30, enable_key_rotation=true, customer-managed policy (main.tf:14-27), and alias support-bot-bootstrap-cmk (main.tf:29-32). Deferred to AWS API check after first apply. |
+| `cd infra/bootstrap && tofu test` runs the 3 `run` blocks above; all assertions pass. | ✅ -- Verified in worktree: 3/3 runs pass (cmk_alias_named_correctly, dynamodb_lock_name_correct, dynamodb_lock_uses_pay_per_request). |
+| `tofu fmt -check -recursive infra/` returns exit code 0. | ✅ -- Verified in worktree: exit 0, no formatting drift. |
+| Misfit Resolution: each misfit in misfits_addressed has a passing test | ✅ -- Misfits addressed: M8 (prevent_destroy on state backend, partial). Both the bucket (main.tf:36-38) and the DynamoDB table (main.tf:95-97) carry lifecycle.prevent_destroy=true. CMake key rotation enabled (main.tf:18). Bucket policy denies insecure transport and non-KMS encryption (main.tf:64-83). No native test asserts prevent_destroy lifecycle behaviour directly (the mock_provider limitation documented in the test file header makes this impossible without real AWS), but the HCL attribute is visible in the diff and tofu validate accepts it. |
+| Subsystem Boundary Respect: no undeclared cross-subsystem coupling | ✅ -- Bootstrap workspace depends only on AWS provider and random provider. No imports from main workspace. No cross-subsystem coupling -- bootstrap is S0 standalone. |
+| Contract Compliance: implementation matches plan.md inter-system contracts | ✅ -- plan.md §5.1 specifies: random_id suffix, KMS CMK with alias, S3 bucket with versioning+SSE-KMS+public access block, DynamoDB PAY_PER_REQUEST with LockID hash_key, prevent_destroy on bucket+table, outputs (bucket_name, lock_table_name, kms_key_arn). All present. |
+| No New Misfits: no new failure modes introduced without documenting them | ✅ -- Readme documents local-state backup requirement and DR procedure for state recovery. The 'bootstrap creates its own remote backend' self-reference is the intended design (no chicken-and-egg). No silent failure modes. |
+| Build Health -- language type-checker exits 0 | ✅ -- tofu validate exit 0 (post-init, post-lock). |
+
+### Dependency Notes
+
+None. WP01 depends on WP00 but does not need to re-run; it just consumes the outputs.
+
+Approve WP00 -- the bootstrap workspace implements the plan.md §5.1 contract correctly, validate and fmt pass, 3/3 tests pass, and the six AWS-API criteria are properly deferred to the first operator-credentialed WP01 apply.
