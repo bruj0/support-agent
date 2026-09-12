@@ -1,6 +1,6 @@
 ---
 feature_slug: "002-alternative-aws-infrastructure"
-status: draft
+status: planned_tasks
 created: "2026-09-12T00:00:00+00:00"
 ---
 
