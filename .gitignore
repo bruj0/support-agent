@@ -1,3 +1,13 @@
+.agents/skills/spec-bridge*
+# OpenTofu / Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+override/
+# .terraform.lock.hcl is intentionally tracked (provider version pinning).
 # Python
 __pycache__/
 *.py[cod]
