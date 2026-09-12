@@ -335,7 +335,7 @@ Bootstrap workspace implements the OpenTofu remote-state backend for the main wo
 ---
 
 ## Review Summary (v1)
-status: requested
+status: approved
 
 WP00 implements the bootstrap workspace for the remote-state backend (S3 + DynamoDB + KMS CMK). The deliverable matches the plan.md §5.1 contract: 8 resources, prevent_destroy on bucket + lock table, KMS CMK with rotation, deny-insecure-transport + deny-non-KMS S3 policy. Build health (tofu validate, tofu fmt -check) and tests (3/3 passing on green) are verified inside the worktree. The remaining 6 AWS-API criteria (apply, plan, get-bucket-versioning, get-bucket-encryption, describe-table, describe-key) require operator credentials against a real AWS account and are deferred to the first plan/apply in the cluster WP that consumes this backend (WP01). This is the documented intended path for the bootstrap workspace -- it is one-shot and never re-applied by CI.
 

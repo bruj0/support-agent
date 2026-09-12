@@ -1,7 +1,7 @@
 {
   "skill": "review",
   "version": 1,
-  "status": "requested",
+  "status": "approved",
   "wp_id": "WP00",
   "feature_slug": "002-alternative-aws-infrastructure",
   "timestamp": "2026-09-12T09:32:34.837858+00:00",
