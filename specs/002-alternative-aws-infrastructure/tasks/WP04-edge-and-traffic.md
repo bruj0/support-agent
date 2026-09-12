@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP04"
 title: "Edge & Traffic — ACM, Route53, WAFv2, ALB controller, Ingress"
-lane: "for_review"
+lane: "doing"
 dependencies:
   - "WP02"
   - "WP03"
@@ -18,6 +18,8 @@ abstract_components:
   - "IngressResource (from S4 plan)"
   - "AlbAccessLogsBucket (from S4 plan)"
 agent: "cursor"
+reviewed_by: "spec-bridge-review"
+review_status: "in_progress"
 tdd_red_clean: true
 build_validated: true
 history:
@@ -29,6 +31,10 @@ history:
     lane: "for_review"
     agent: "cursor"
     action: "implementation complete, ready for review"
+  - timestamp: "2026-09-12T17:45:00+00:00"
+    lane: "doing"
+    agent: "spec-bridge-review"
+    action: "review started"
 ---
 
 # WP04 — Edge & Traffic
