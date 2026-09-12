@@ -1,0 +1,10 @@
+variable "env" { type = string }
+variable "cluster_name" { type = string }
+variable "cluster_security_group_id" { type = string }
+variable "vpc_id" { type = string }
+variable "public_subnet_ids" { type = list(string) }
+variable "parent_zone_id" { type = string }
+variable "domain_suffix" { type = string }
+variable "alb_controller_role_arn" { type = string }
+variable "cmk_arn" { type = string }
+variable "vpc_endpoint_security_group_id" { type = string }
