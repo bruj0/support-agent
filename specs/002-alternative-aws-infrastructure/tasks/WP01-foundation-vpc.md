@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP01"
 title: "Foundation — VPC, subnets, NAT, VPC endpoints"
-lane: "planned"
+lane: "doing"
 dependencies:
   - "WP00"
 subsystem: "S1 Foundation"
@@ -9,8 +9,12 @@ misfits_addressed:
   - "(substrate — provides VPC consumed by S2–S6)"
 abstract_components:
   - "VpcModule (from S1 plan)"
-agent: ""
-history: []
+agent: "cursor"
+history:
+  - timestamp: "2026-09-12T11:05:00+00:00"
+    lane: "doing"
+    agent: "cursor"
+    action: "started implementation"
 ---
 
 # WP01 — Foundation (VPC + subnets + NAT + VPC endpoints)
