@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP01"
 title: "Foundation — VPC, subnets, NAT, VPC endpoints"
-lane: "doing"
+lane: "for_review"
 dependencies:
   - "WP00"
 subsystem: "S1 Foundation"
@@ -17,6 +17,10 @@ history:
     lane: "doing"
     agent: "cursor"
     action: "started implementation"
+  - timestamp: "2026-09-12T11:45:00+00:00"
+    lane: "for_review"
+    agent: "cursor"
+    action: "implementation complete, ready for review"
 ---
 
 # WP01 — Foundation (VPC + subnets + NAT + VPC endpoints)
@@ -360,3 +364,35 @@ The other modules (cluster, identity, edge, storage, observability) are added in
 - The `aws_security_group.vpc_endpoints` allows ingress from the VPC CIDR; egress is open. This is the AWS-recommended default for VPC endpoints.
 - The `private_dns_enabled = true` on each interface endpoint ensures the AWS service private DNS resolves correctly within the VPC (no `PrivateDnsEnabled` mismatch with AWS expectations).
 - The S3 gateway endpoint is free (no hourly charge, no per-GB charge) and routes all S3 traffic from the VPC directly to S3 without going through the NAT gateway — saves ~$0.005/GB on egress.
+
+---
+
+## Implementation Summary
+
+**Worktree**: `.worktrees/002-alternative-aws-infrastructure-WP01` on branch `002-alternative-aws-infrastructure-WP01`
+
+WP01 provisions the per-environment VPC substrate consumed by every other subsystem module (cluster, identity, edge, storage, observability). The worktree contains the foundation module (VPC + subnets + NAT + endpoints), the root OpenTofu configuration that calls it, and per-environment tfvars skeletons. 4 tofu test runs assert the structural invariants (3+3 subnets, 1 NAT, 6 interface endpoints, 1 gateway endpoint, cluster tagging). The 7 AWS-API acceptance criteria are deferred to the operator's first tofu apply against real AWS.
+
+### Files created
+
+| File | Description |
+|------|-------------|
+| `infra/versions.tf` | Root workspace provider pinning: OpenTofu >=1.6.0; aws >=5.40.0; helm >=2.12.0; kubernetes >=2.27.0; random >=3.6.0; null >=3.2.0; kubectl >=1.14.0. |
+| `infra/root_variables.tf` | Root input variables: region (default eu-central-1), env (required), parent_zone_id, admin_cidr, shared_ecr, chroma_auth_token (sensitive), openai_api_key (sensitive), domain_suffix, vpc_cidr (10.0.0.0/16), nat_gateway_count (1). |
+| `infra/root_outputs.tf` | Root outputs forwarding vpc_id, public/private subnet ids, and vpc_endpoint_security_group_id from the foundation module. |
+| `infra/root.tf` | Root module call wiring modules/foundation with env, region, vpc_cidr, nat_gateway_count. Cluster/identity/edge/storage/observability modules are added in their respective WPs. |
+| `infra/envs/dev.tfvars` | Dev environment tfvars skeleton -- env, parent_zone_id, admin_cidr placeholders. Secrets via TF_VAR_* env vars at apply time, NOT stored in tfvars. |
+| `infra/envs/prod.tfvars` | Prod environment tfvars skeleton -- env=prod, parent_zone_id, admin_cidr placeholders. |
+| `infra/modules/foundation/versions.tf` | Foundation module provider pinning: OpenTofu >=1.6.0, aws >=5.40.0. |
+| `infra/modules/foundation/variables.tf` | Foundation module inputs: env, region (default eu-central-1), vpc_cidr, az_count (default 3), nat_gateway_count (default 1), enable_vpc_endpoints (default true). |
+| `infra/modules/foundation/main.tf` | VPC + subnets (public + private, 3 AZs), 1 NAT gateway, 1 IGW, public + private route tables + associations, VPC endpoint security group, 6 interface endpoints (Secrets Manager, STS, ECR API, ECR DKR, CloudWatch Logs, CloudWatch Monitoring) + 1 S3 gateway endpoint. All resources tagged with Name + Cluster=support-bot-{env}. |
+| `infra/modules/foundation/outputs.tf` | Foundation module outputs: vpc_id, vpc_cidr_block, public_subnet_ids, private_subnet_ids, nat_gateway_ids, vpc_endpoint_security_group_id, internet_gateway_id. |
+| `infra/modules/foundation/tests/foundation.tftest.hcl` | 4 tofu test runs asserting VPC structural invariants: 3 public + 3 private subnets, exactly 1 NAT, 6 interface endpoints, exactly 1 S3 gateway endpoint, all subnets cluster-tagged. Uses provider skip + override_data pattern to evaluate without AWS. |
+
+### Test results
+
+4/4 passing -- `cd /home/bruj0/projects/support-agent/.worktrees/002-alternative-aws-infrastructure-WP01/infra/modules/foundation && tofu test`
+
+### Validator
+
+8/8 checks passed -- `spec-bridge-skill-tool implement WP01 --feature 002-alternative-aws-infrastructure --session-id 0ab8a0c8-0b2d-4caa-a19c-7808b7270634`
