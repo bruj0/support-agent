@@ -2,8 +2,8 @@
 version: "1"
 project_name: "Support Bot RAG + AWS Infrastructure"
 created: "2026-09-12T13:00:00+00:00"
-updated: "2026-09-12T18:30:00+00:00"
-contexts_count: 6
+updated: "2026-09-12T20:00:00+00:00"
+contexts_count: 7
 ---
 
 # Context Map
@@ -42,6 +42,14 @@ canonical vocabulary; cross-context relationships are mapped below.
   Cluster+Component tags, additive chart values wiring the Chroma PVC to
   the StorageClass (Gp3StorageClass, StorageClassValueMerge, EcrRepository,
   DlmSnapshotPolicy).
+- [AWS Observability & Policy](../infra/modules/observability/CONTEXT.md) —
+  Per-env ADOT collector DaemonSet (Pod Identity, OTLP receivers, awsxray +
+  awsemf exporters), 2 CloudWatch log groups (30d application + 7d otel,
+  KMS-encrypted), Pod Security Standards via namespace labels
+  (enforce/warn/audit=restricted), 3 NetworkPolicy resources (default-deny +
+  api-allow + chroma-allow) gated on the VPC CNI addon's enableNetworkPolicy
+  flag set in WP02 (AdotCollectorHelm, ApplicationLogGroup, OtelLogGroup,
+  PodSecurityStandards, NetworkPolicies, VpcCniNetworkPolicy).
 
 ## Inter-Context Relationships
 
@@ -91,3 +99,14 @@ canonical vocabulary; cross-context relationships are mapped below.
   flow through Helm into the existing `templates/pvc.yaml`, binding the
   Chroma PVC to Gp3StorageClass and tagging it for DlmSnapshotPolicy
   selection.
+- **AWS Observability & Policy → AWS Cluster & Compute**: Observability
+  module consumes `cluster_name` from Cluster (for output URL) and depends
+  on the VPC CNI addon's enableNetworkPolicy flag (set in WP02). The chart's
+  additive `templates/networkpolicy.yaml` mirrors the same policies.
+- **AWS Observability & Policy → AWS Identity & Secrets**: Observability
+  module consumes `adot_role_arn` for ADOT Pod Identity and `cmk_arn` for
+  KMS-encrypted CloudWatch log groups.
+- **AWS Observability & Policy → Support Bot RAG Project**: The chart's
+  additive `templates/networkpolicy.yaml` mirrors the same NetworkPolicy
+  set so a downstream chart install reproduces the deny-by-default policy
+  shape under `.Values.networkPolicies`.
