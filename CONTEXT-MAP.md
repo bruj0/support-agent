@@ -2,8 +2,8 @@
 version: "1"
 project_name: "Support Bot RAG + AWS Infrastructure"
 created: "2026-09-12T13:00:00+00:00"
-updated: "2026-09-12T15:00:00+00:00"
-contexts_count: 4
+updated: "2026-09-12T16:50:00+00:00"
+contexts_count: 5
 ---
 
 # Context Map
@@ -31,6 +31,11 @@ canonical vocabulary; cross-context relationships are mapped below.
   associations + GitHub Actions OIDC (EnvCmk, OpenAiSecret, ChromaAuthSecret,
   ExternalSecretsRole, AdotRole, AlbControllerRole, GithubActionsRole,
   GithubOidcProvider, PodIdentityAssociation).
+- [AWS Edge & Traffic](../infra/modules/edge/CONTEXT.md) — Public ingress
+  layer: ACM certificate, Route53 alias, WAFv2 WebACL, AWS Load Balancer
+  Controller helm release, Ingress resource, ALB access logs bucket
+  (AcmCertificate, Route53Record, Wafv2WebAcl, AlbControllerHelm,
+  IngressResource, AlbAccessLogsBucket).
 
 ## Inter-Context Relationships
 
@@ -56,3 +61,15 @@ canonical vocabulary; cross-context relationships are mapped below.
   `templates/serviceaccount.yaml` carries the EKS Pod Identity association
   annotations. Both are wired through `.Values.externalSecrets` and
   `.Values.serviceAccounts` blocks (added in WP03, default values updated).
+- **AWS Edge & Traffic → AWS Foundation**: Edge module consumes `vpc_id`,
+  `public_subnet_ids`, `vpc_endpoint_security_group_id` from Foundation.
+- **AWS Edge & Traffic → AWS Cluster & Compute**: Edge module consumes
+  `cluster_name`, `cluster_security_group_id` from Cluster.
+- **AWS Edge & Traffic → AWS Identity & Secrets**: Edge module consumes
+  `alb_controller_role_arn` for the LBC Pod Identity, and `cmk_arn` for
+  the ALB access logs bucket's KMS encryption.
+- **AWS Edge & Traffic → Support Bot RAG Project**: Edge module applies
+  the `Ingress` resource via `kubernetes_manifest`; the chart's additive
+  `templates/ingress.yaml` mirrors the same manifest shape under
+  `.Values.ingress` so a downstream feature can install the chart and
+  rely on the same ALB annotations.
