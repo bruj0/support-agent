@@ -396,3 +396,36 @@ Add a CI step that runs after `tofu validate`:
 - The chart's existing `templates/pvc.yaml` already supports `persistence.storageClassName` and `persistence.annotations` via Helm's standard `metadata.annotations` merge. Verify by reading the existing template — if it does NOT, the implementer needs to **propose an additive change** (which the spec allows). Do not edit the existing template without first reading it.
 
 - The `kubernetes_manifest.support_bot_gp3_storageclass` resource uses `manifest` (HCL map) — not `manifest_json`. For StorageClass CRDs the HCL map shape works; for complex CRDs (Ingress, NetworkPolicy) the implementer should prefer `manifest_json` for safety.
+
+---
+
+## Implementation Summary
+
+**Worktree**: `` on branch ``
+
+WP05 implements S5 Data Plane & Storage end-to-end. The storage module provisions the per-env support-bot-gp3 StorageClass (gp3, 3000 IOPS, 250 MiB/s, encrypted, reclaimPolicy=Retain, WaitForFirstConsumer — resolves M3), the per-env ECR repository (image_tag_mutability=IMMUTABLE, scan_on_push=true, KMS-encrypted with per-env CMK — resolves M10), the ECR repository policy scoped to the GitHub Actions OIDC role (no * principals), and the DLM lifecycle policy targeting EBS volumes tagged Cluster+Component (resolves M9). Additive chart changes: values.yaml gets persistence.storageClassName=support-bot-gp3 default and a persistence.labels mapping (rendered as PVC metadata.labels via a small additive with-block in templates/pvc.yaml — the existing label include is preserved, no removal). Per-env dev/prod values files override the labels with the canonical Cluster=support-bot-<env> and Component=chroma strings. 10/10 storage tests pass; tofu validate clean across root + 5 modules; helm lint clean for prod+dev; rendered PVC shows storageClassName=support-bot-gp3 and Cluster=support-bot-prod + Component=chroma labels.
+
+### Files created
+
+| File | Description |
+|------|-------------|
+| `infra/modules/storage/versions.tf` | Provider pinning (aws + kubernetes) for S5 Data Plane & Storage. |
+| `infra/modules/storage/variables.tf` | 5 module inputs (env, eks_cluster_name, github_actions_role_arn, shared_ecr [default false], cmk_arn). |
+| `infra/modules/storage/main.tf` | Gp3StorageClass (gp3 + Retain + WaitForFirstConsumer), EcrRepository (IMMUTABLE, scan_on_push, KMS-encrypted with per-env CMK, prevent_destroy), EcrRepositoryPolicy (scoped to github_actions_role_arn push + account root pull, no * principals), DlmLifecyclePolicy (target_tags Cluster+Component, 24h interval, 7-snapshot retention, copy_tags). Resolves M3, M9, M10, M8 (prevent_destroy on ECR repo). |
+| `infra/modules/storage/outputs.tf` | 5 outputs: storage_class_name, ecr_repository_url, ecr_repository_arn, ecr_repository_name, dlm_policy_id. |
+| `infra/modules/storage/tests/storage.tftest.hcl` | 10 run blocks asserting storage class shape (reclaimPolicy=Retain, WaitForFirstConsumer, gp3/3000/250/encrypted), ECR repo (IMMUTABLE tags, scan_on_push, per-env naming, scoped repo policy), DLM target_tags Cluster+Component + 24h/7d retention. Misfit M8 (prevent_destroy) verified by code review (lifecycle meta-block is not queryable in tofu test). |
+| `deploy/helm/support-bot/templates/pvc.yaml` | Additive change: render .Values.persistence.labels as PVC metadata.labels (after the existing support-bot.labels include). No existing logic removed. |
+| `deploy/helm/support-bot/values.yaml` | persistence.storageClassName default = support-bot-gp3; persistence.labels = {} (overridden per-env). |
+| `deploy/helm/support-bot/values-dev.yaml` | persistence.labels override: Cluster=support-bot-dev, Component=chroma (dev-sized 1Gi PVC). |
+| `deploy/helm/support-bot/values-prod.yaml` | persistence.labels override: Cluster=support-bot-prod, Component=chroma (prod-sized 10Gi PVC). |
+| `infra/root.tf` | Wired module.storage (consumes cluster.cluster_name, identity.github_actions_role_arn, identity.cmk_arn, var.shared_ecr). |
+| `infra/root_outputs.tf` | 5 new root outputs: storage_class_name, ecr_repository_url, ecr_repository_arn, ecr_repository_name, dlm_policy_id. |
+| `.github/workflows/infra-ci.yml` | Added helm template -- storageClass + PVC labels sanity check (asserts storageClassName=support-bot-gp3 in both renderings + Cluster=support-bot-<env> in each). |
+
+### Test results
+
+10/10 passing -- `cd .worktrees/002-alternative-aws-infrastructure-WP05/infra/modules/storage && tofu init -backend=false && tofu test`
+
+### Validator
+
+0/0 checks passed -- `<spec-bridge-skill-tool implement WP05 --feature 002-alternative-aws-infrastructure>`
