@@ -1,0 +1,76 @@
+{
+  "skill": "review",
+  "version": 1,
+  "status": "approved",
+  "wp_id": "WP03",
+  "feature_slug": "002-alternative-aws-infrastructure",
+  "timestamp": "2026-09-12T10:33:51.746201+00:00",
+  "previous_version": null,
+  "prose": "WP03 implements the identity & secrets substrate end-to-end: a per-env KMS CMK, two Secrets Manager entries (openai-api-key, chroma-auth-token), four IAM roles (external-secrets-operator, adot-collector, alb-controller, github-actions) wired via EKS Pod Identity associations, and the GitHub Actions OIDC provider. The Helm chart learned externalSecrets.enabled + serviceAccounts.* to consume the new identities, and a useLegacySecretInlining toggle keeps the legacy inlined Secret path for backward compatibility.   Identity-module tests pass 6/6; cluster and foundation module tests remain 6/6 and 4/4 respectively; root + 3 modules all tofu validate clean and tofu fmt clean. The three 'partial' verdicts are the canonical AWS-API checks (apply, describe, plan-after-apply) that require a live AWS account — they will resolve on the first cluster create. Recommend APPROVE.",
+  "reviewer": "cursor",
+  "criteria": [
+    {
+      "name": "tofu apply -var-file=envs/prod.tfvars provisions: 1 CMK, 2 secrets, 4 IAM roles, 1 OIDC provider, 3 Pod Identity associations.",
+      "verdict": "partial",
+      "note": "Config is valid (tofu validate 4/4 success). Live tofu apply not run against AWS — state backend is empty by design. Resource shapes verified via the 6 passing identity-module tests."
+    },
+    {
+      "name": "aws secretsmanager describe-secret --secret-id support-bot/prod/openai-api-key returns KmsKeyId: <cmk-arn>.",
+      "verdict": "partial",
+      "note": "kms_key_id = aws_kms_key.env_cmk.arn reference present in main.tf and asserted in secrets_kms_encrypted test. AWS API call not run in dev; will resolve on first tofu apply."
+    },
+    {
+      "name": "aws iam get-role-policy --role-name external-secrets-operator-prod --policy-name ExternalSecretsRead returns a policy whose Resource is the 2 secret ARNs and the CMK ARN — never \"*\".",
+      "verdict": "partial",
+      "note": "Resource scoping is statically enforced in test iam_policies_scoped: walk aws_iam_role_policy.*.policy, jsondecode, and fail on any Statement.Resource == \"*\" unless tagged as a documented AWS-mandated exception (XRayWrites, EC2ReadOnly, ELBv2Scoped, ECRGetAuthToken). All 4 inline policies pass. Live API check not run."
+    },
+    {
+      "name": "kubectl get externalsecret -n support-bot (when chart is later installed by a downstream feature) would render 2 ExternalSecret resources with refreshInterval: 1m — verified by helm template deploy/helm/support-bot --values values-prod.yaml | grep kind:ExternalSecret",
+      "verdict": "pass",
+      "note": "templates/externalsecret.yaml renders ClusterSecretStore + 2 ExternalSecret entries (openai-api-key, chroma-auth-token) gated on .Values.externalSecrets.enabled. Helm lint passes for both dev and prod values."
+    },
+    {
+      "name": "helm template deploy/helm/support-bot --values values-prod.yaml | grep -E 'sk-[A-Za-z0-9]{32,}' returns 0 matches.",
+      "verdict": "pass",
+      "note": "helm template | grep -E 'sk-[A-Za-z0-9]{32,}' returned 0 matches during WP03 validator. Secret-scan step T015 now wired into .github/workflows/infra-ci.yml."
+    },
+    {
+      "name": "cd infra/modules/identity && tofu test runs all 6 run blocks; all assertions pass.",
+      "verdict": "pass",
+      "note": "6/6 pass: prevent_destroy_on_secrets, cmk_deletion_window, iam_policies_scoped, secrets_kms_encrypted, secret_versions_present, pod_identity_associations."
+    },
+    {
+      "name": "tofu plan after apply reports No changes.",
+      "verdict": "partial",
+      "note": "Idempotency enforced by prevent_destroy lifecycle on CMK + Secrets, deterministic env for_each, and stable role names. Plan-after-apply can't be exercised in dev (no AWS); will resolve on first tofu apply followed by re-plan."
+    },
+    {
+      "name": "Misfit Resolution: each misfit in misfits_addressed has a passing test",
+      "verdict": "pass",
+      "note": "M1 secrets leak — Secrets Manager is the only source; ExternalSecret templates render at install; legacy path gated. M5 scoped IAM — iam_policies_scoped test enforces ARN-scoped Resources with explicit Sid-tagged exceptions. M8 prevent_destroy — prevent_destroy_on_secrets and cmk_deletion_window tests pass."
+    },
+    {
+      "name": "Subsystem Boundary Respect: no undeclared cross-subsystem coupling",
+      "verdict": "pass",
+      "note": "modules/identity consumes from modules/cluster only through eks_oidc_provider_arn and the Pod Identity role already produced there. All other coupling flows through root.tf."
+    },
+    {
+      "name": "Contract Compliance: implementation matches plan.md inter-system contracts",
+      "verdict": "pass",
+      "note": "9 outputs (cmk_arn, cmk_alias, openai_secret_arn, chroma_auth_secret_arn, external_secrets_role_arn, adot_role_arn, alb_controller_role_arn, github_actions_role_arn, github_oidc_provider_arn) match the S3 plan inter-system contract. chroma_auth_secret_arn + role outputs correctly wrapped in try(..., null) for count-conditional resources."
+    },
+    {
+      "name": "No New Misfits: no new failure modes introduced without documenting them",
+      "verdict": "pass",
+      "note": "2 flagged ambiguities noted in modules/identity/CONTEXT.md: secret vs secret entry vocabulary, and IRSA vs PodIdentityAssociation for the EKS 1.30+ Pod Identity adoption. Implementation choices documented inline."
+    },
+    {
+      "name": "Build Health -- language type-checker exits 0",
+      "verdict": "pass",
+      "note": "tofu validate succeeds for root + modules/identity + modules/cluster + modules/foundation (4/4). tofu fmt -check -recursive exits 0. helm lint clean for dev + prod values."
+    }
+  ],
+  "issues": [],
+  "dependency_notes": "",
+  "closing": "APPROVE — WP03 implements S3 contract with passing unit tests, clean tofu validate/fmt, and documented deferred AWS-API checks; safe to merge into main and unblock WP04 / WP05 / WP06."
+}
