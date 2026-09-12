@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP06"
 title: "Observability & Policy — ADOT, NetworkPolicy, Pod Security Standards"
-lane: "planned"
+lane: "doing"
 dependencies:
   - "WP02"
   - "WP03"
@@ -18,8 +18,12 @@ abstract_components:
   - "PodSecurityStandards (from S6 plan)"
   - "NetworkPolicies (from S6 plan)"
   - "VpcCniNetworkPolicy (from S6 plan — VPC CNI addon enabled in WP02)"
-agent: ""
-history: []
+agent: "cursor"
+history:
+  - timestamp: "2026-09-12T20:05:00+00:00"
+    lane: "doing"
+    agent: "cursor"
+    action: "started implementation"
 ---
 
 # WP06 — Observability & Policy
