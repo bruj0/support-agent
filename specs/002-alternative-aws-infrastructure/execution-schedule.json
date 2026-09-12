@@ -1,0 +1,42 @@
+{
+  "feature_slug": "002-alternative-aws-infrastructure",
+  "generated_at": "2026-09-12T09:16:29+00:00",
+  "groups": [
+    {
+      "group": 1,
+      "parallel": false,
+      "wps": ["WP00"],
+      "depends_on": []
+    },
+    {
+      "group": 2,
+      "parallel": false,
+      "wps": ["WP01"],
+      "depends_on": ["WP00"]
+    },
+    {
+      "group": 3,
+      "parallel": false,
+      "wps": ["WP02"],
+      "depends_on": ["WP01"]
+    },
+    {
+      "group": 4,
+      "parallel": true,
+      "wps": ["WP03", "WP04", "WP05"],
+      "depends_on": ["WP02"]
+    },
+    {
+      "group": 5,
+      "parallel": false,
+      "wps": ["WP06"],
+      "depends_on": ["WP02", "WP03", "WP05"]
+    },
+    {
+      "group": 6,
+      "parallel": false,
+      "wps": ["WP07"],
+      "depends_on": ["WP01", "WP02", "WP03", "WP04", "WP05", "WP06"]
+    }
+  ]
+}
