@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP04"
 title: "Edge & Traffic — ACM, Route53, WAFv2, ALB controller, Ingress"
-lane: "doing"
+lane: "for_review"
 dependencies:
   - "WP02"
   - "WP03"
@@ -25,6 +25,10 @@ history:
     lane: "doing"
     agent: "cursor"
     action: "started implementation"
+  - timestamp: "2026-09-12T17:35:00+00:00"
+    lane: "for_review"
+    agent: "cursor"
+    action: "implementation complete, ready for review"
 ---
 
 # WP04 — Edge & Traffic
