@@ -88,17 +88,19 @@ config:
   openaiPageAnalyzerModel: gpt-4o-mini
   lowConfidenceThreshold: "0.5"
 
-# Secret keys MUST be supplied at install time via --set or
-# an external secret manager (NFR-003). The values.schema.json
-# declares openaiApiKey as required (non-empty sk-<base62>);
-# embeddingApiKey and chromaAuthToken are optional and default
-# to null. The Secret template below converts null to an empty
-# stringData entry, which is correct -- the operator is
-# expected to populate the real value via --set or a sealed-secret.
+# Secret keys: defaults to null. The WP03 identity module + the chart's
+# `templates/externalsecret.yaml` populate the actual secrets at runtime via
+# the External Secrets Operator (ClusterSecretStore + ExternalSecret). For
+# pre-WP03 transitions or local tests, set useLegacySecretInlining=true and
+# supply the secret values via --set or a sealed-secret.
 secret:
-  openaiApiKey: ""
+  openaiApiKey: null
   embeddingApiKey: null
   chromaAuthToken: null
+
+# WP03 toggle: defaults to false (post-WP03 path). Set to true for backward
+# compat during the WP03 transition or for local helm template tests.
+useLegacySecretInlining: false
 
 # Service configuration.
 service:
@@ -113,3 +115,41 @@ service:
 probes:
   livenessPath: /healthz
   readinessPath: /healthz
+
+# ----------------------------------------------------------------------------
+# WP03 additive: External Secrets Operator wiring + ServiceAccount Pod Identity
+# ----------------------------------------------------------------------------
+
+# Environment name injected by tofu apply (default: dev). Used as a path
+# segment in Secrets Manager entry names.
+env: "dev"
+
+# ClusterSecretStore + per-secret ExternalSecret definitions. The chart renders
+# these only when `enabled: true`. The EKS Pod Identity association for the
+# `external-secrets` service account is provisioned by the identity module.
+externalSecrets:
+  enabled: true
+  region: "eu-central-1"
+  refreshInterval: "1m"
+  secrets:
+    - name: openai-api-key
+      remoteRef:
+        key: "support-bot/{{ .Values.env }}/openai-api-key"
+      secretKey: "OPENAI_API_KEY"
+    - name: chroma-auth-token
+      remoteRef:
+        key: "support-bot/{{ .Values.env }}/chroma-auth-token"
+      secretKey: "CHROMA_AUTH_TOKEN"
+
+# ServiceAccounts with EKS Pod Identity association annotations. The actual
+# roleArn is injected by the identity module at apply time; the chart renders
+# with an empty annotation as the default so the chart still works standalone.
+serviceAccounts:
+  enabled: true
+  entries:
+    - name: external-secrets
+      namespace: support-bot
+    - name: adot-collector
+      namespace: opentelemetry
+    - name: aws-load-balancer-controller
+      namespace: kube-system
