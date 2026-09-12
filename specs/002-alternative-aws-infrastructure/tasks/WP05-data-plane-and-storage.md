@@ -17,6 +17,7 @@ abstract_components:
   - "DlmSnapshotPolicy (from S5 plan)"
 agent: "cursor"
 tdd_red_clean: true
+build_validated: true
 history:
   - timestamp: "2026-09-12T18:35:00+00:00"
     lane: "doing"
