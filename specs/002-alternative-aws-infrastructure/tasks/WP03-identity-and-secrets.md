@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP03"
 title: "Identity & Secrets — KMS CMKs, Secrets Manager, IAM roles, Pod Identity associations"
-lane: "planned"
+lane: "doing"
 dependencies:
   - "WP02"
 subsystem: "S3 Identity & Secrets"
@@ -15,8 +15,12 @@ abstract_components:
   - "IamRoles (from S3 plan)"
   - "PodIdentityAssociations (from S3 plan)"
   - "GithubOidc (from S3 plan)"
-agent: ""
-history: []
+agent: "cursor"
+history:
+  - timestamp: "2026-09-12T15:05:00+00:00"
+    lane: "doing"
+    agent: "cursor"
+    action: "started implementation"
 ---
 
 # WP03 — Identity & Secrets
