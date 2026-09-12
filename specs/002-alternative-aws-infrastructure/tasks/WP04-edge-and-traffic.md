@@ -263,3 +263,36 @@ The existing `infra-ci.yml` skeleton (WP00 T004) needs no change — the secret-
 - The `kubernetes_manifest.env_ingress` resource can use a **manifest** field (HCL map) or **manifest_json** field (JSON-encoded string) — both are valid in the `hashicorp/kubernetes` provider. The implementer should use **manifest_json** for complex CRDs to avoid HCL type-conversion bugs.
 - The `alb.ingress.kubernetes.io/listen-ports` annotation is a JSON-encoded list of port mappings. The value `'[{"HTTPS":443}]'` is a literal string that must be wrapped in single quotes in YAML.
 - The chart's `templates/ingress.yaml` template references `{{ .Values.ingress.wafv2AclArn }}` which is empty by default. The actual value is injected at `tofu apply` time via a `values` block on the `kubernetes_manifest.env_ingress` resource — **but** since this WP doesn't install the chart, the `wafv2AclArn` annotation must be passed to the `kubernetes_manifest` resource directly (not via chart values).
+
+---
+
+## Implementation Summary
+
+**Worktree**: `` on branch ``
+
+WP04 implements the public-facing edge layer. The edge module provisions the per-env ACM cert (DNS-validated, wildcard SAN), the WAFv2 WebACL (3 AWS managed rule groups + rate-based 1000/5min/IP), the ALB access logs S3 bucket (prevent_destroy, KMS-encrypted, public-access-blocked, 30-day expiry), and the AWS Load Balancer Controller helm release (Pod Identity, multi-AZ via var.public_subnet_ids). The IngressResource is applied via kubernetes_manifest with the 4 FR-010 ALBC annotations + ingressClassName=alb. The chart learned templates/ingress.yaml (gated on .Values.ingress.enabled) so downstream chart installs render the same ALB-ready manifest shape; values.yaml added a clean ingress block (replacing the legacy nginx-style block). The Route53 alias record is left out at the tofu level (per WP04 T009 notes — the ALB DNS is only knowable after the LBC reconciles); the wart is documented in main.tf. 5 edge-module tests pass; tofu validate clean across root + 4 modules; helm lint clean for prod+dev.
+
+### Files created
+
+| File | Description |
+|------|-------------|
+| `infra/modules/edge/versions.tf` | Provider pinning (aws + helm + kubernetes) for S4 Edge & Traffic. |
+| `infra/modules/edge/variables.tf` | 10 module inputs (env, cluster_name, cluster_security_group_id, vpc_id, public_subnet_ids, parent_zone_id, domain_suffix, alb_controller_role_arn, cmk_arn, vpc_endpoint_security_group_id). |
+| `infra/modules/edge/main.tf` | AcmCertificate (DNS validated, wildcard SAN), Wafv2WebAcl (3 managed + 1 rate-based), AlbAccessLogsBucket (prevent_destroy, KMS CMK, public-blocked, 30d expiry, ELB log-delivery bucket policy), AlbControllerHelm (Pod Identity, replicaCount=2, subnet wiring), IngressResource (kubernetes_manifest, FR-010 annotations). Addressed misfits M2 (annotations pinned in tofu + chart), M4 (3 public subnets wired), M8 (prevent_destroy + versioning + sse). |
+| `infra/modules/edge/outputs.tf` | 5 outputs: acm_cert_arn, wafv2_web_acl_arn, alb_access_logs_bucket, alb_access_logs_bucket_arn, ingress_name. ALB DNS outputs are intentionally omitted (LBC-created resource). |
+| `infra/modules/edge/tests/edge.tftest.hcl` | 5 run blocks asserting ACM SAN wildcard + DNS validation, WAFv2 has 4 rules, 3 public subnets wired (M4), ALB access logs bucket name+account_id. Pinned misfits M2, M4 (partial), M8. |
+| `deploy/helm/support-bot/templates/ingress.yaml` | Additive Ingress template gated on .Values.ingress.enabled; mirrors the FR-010 annotations + ingressClassName=alb so a downstream chart install produces the same ALBC-ready manifest. |
+| `deploy/helm/support-bot/values.yaml` | Added ingress block (enabled=true, scheme=internal, sslPolicy, wafv2AclArn default ''). |
+| `deploy/helm/support-bot/values-dev.yaml` | ingress.enabled=false (chart Ingress disabled; tofu owns it). Added comment explaining the split. |
+| `deploy/helm/support-bot/values-prod.yaml` | Replaced legacy nginx-style ingress with tofu-owned ingress block (enabled=false; wafv2AclArn default ''). |
+| `infra/root.tf` | Wired module.edge into the root composition (consumes foundation.vpc_id + public_subnet_ids, cluster.cluster_name + cluster_security_group_id, identity.alb_controller_role_arn + cmk_arn). |
+| `infra/root_outputs.tf` | 4 new root outputs: acm_cert_arn, wafv2_web_acl_arn, alb_access_logs_bucket, alb_access_logs_bucket_arn. |
+| `.github/workflows/infra-ci.yml` | Added helm template -- ingress shape sanity check step (renders with enabled=true and enabled=false; asserts ingressClassName=alb + 1 Ingress + 0 Ingress respectively). |
+
+### Test results
+
+5/5 passing -- `cd .worktrees/002-alternative-aws-infrastructure-WP04/infra/modules/edge && tofu init -backend=false && tofu test`
+
+### Validator
+
+0/0 checks passed -- `<spec-bridge-skill-tool implement WP04 --feature 002-alternative-aws-infrastructure>`
