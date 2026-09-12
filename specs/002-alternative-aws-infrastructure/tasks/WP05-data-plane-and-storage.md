@@ -16,6 +16,7 @@ abstract_components:
   - "EcrRepository (from S5 plan)"
   - "DlmSnapshotPolicy (from S5 plan)"
 agent: "cursor"
+tdd_red_clean: true
 history:
   - timestamp: "2026-09-12T18:35:00+00:00"
     lane: "doing"
