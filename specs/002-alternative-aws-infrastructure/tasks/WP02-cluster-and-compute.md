@@ -16,6 +16,8 @@ abstract_components:
   - "KarpenterController (from S2 plan)"
   - "NodePoolOutputs (from S2 plan)"
 agent: "cursor"
+tdd_red_clean: true
+build_validated: false
 history:
   - timestamp: "2026-09-12T13:05:00+00:00"
     lane: "doing"
