@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP05"
 title: "Data Plane & Storage — StorageClass, ECR, DLM snapshots"
-lane: "planned"
+lane: "doing"
 dependencies:
   - "WP02"
   - "WP03"
@@ -15,8 +15,12 @@ abstract_components:
   - "StorageClassValueMerge (from S5 plan)"
   - "EcrRepository (from S5 plan)"
   - "DlmSnapshotPolicy (from S5 plan)"
-agent: ""
-history: []
+agent: "cursor"
+history:
+  - timestamp: "2026-09-12T18:35:00+00:00"
+    lane: "doing"
+    agent: "cursor"
+    action: "started implementation"
 ---
 
 # WP05 — Data Plane & Storage
