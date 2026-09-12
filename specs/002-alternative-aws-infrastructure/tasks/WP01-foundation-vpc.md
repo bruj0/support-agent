@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP01"
 title: "Foundation — VPC, subnets, NAT, VPC endpoints"
-lane: "for_review"
+lane: "doing"
 dependencies:
   - "WP00"
 subsystem: "S1 Foundation"
@@ -10,6 +10,8 @@ misfits_addressed:
 abstract_components:
   - "VpcModule (from S1 plan)"
 agent: "cursor"
+reviewed_by: "spec-bridge-review"
+review_status: "in_progress"
 tdd_red_clean: true
 build_validated: true
 history:
@@ -21,6 +23,10 @@ history:
     lane: "for_review"
     agent: "cursor"
     action: "implementation complete, ready for review"
+  - timestamp: "2026-09-12T12:00:00+00:00"
+    lane: "doing"
+    agent: "spec-bridge-review"
+    action: "review started"
 ---
 
 # WP01 — Foundation (VPC + subnets + NAT + VPC endpoints)
