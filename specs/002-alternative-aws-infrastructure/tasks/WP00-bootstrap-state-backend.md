@@ -1,15 +1,19 @@
 ---
 work_package_id: "WP00"
 title: "Bootstrap state backend (S3 + DynamoDB + KMS CMK)"
-lane: "planned"
+lane: "doing"
 dependencies: []
 subsystem: "S0 (one-shot bootstrap)"
 misfits_addressed:
   - "M8 (prevent_destroy on state backend, partial)"
 abstract_components:
   - "StateBucket (from S1 plan)"
-agent: ""
-history: []
+agent: "spec-bridge-implement"
+history:
+  - timestamp: "2026-09-12T09:25:00+00:00"
+    lane: "doing"
+    agent: "spec-bridge-implement"
+    action: "started implementation"
 ---
 
 # WP00 — Bootstrap state backend
