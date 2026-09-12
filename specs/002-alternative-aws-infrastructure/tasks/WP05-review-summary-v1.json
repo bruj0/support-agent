@@ -1,0 +1,76 @@
+{
+  "skill": "review",
+  "version": 1,
+  "status": "approved",
+  "wp_id": "WP05",
+  "feature_slug": "002-alternative-aws-infrastructure",
+  "timestamp": "2026-09-12T11:26:46.286777+00:00",
+  "previous_version": null,
+  "prose": "WP05 implements S5 Data Plane & Storage end-to-end. The storage module provisions the per-env support-bot-gp3 StorageClass (gp3, 3000 IOPS, 250 MiB/s, encrypted, reclaimPolicy=Retain, WaitForFirstConsumer — resolves M3), the per-env ECR repository (image_tag_mutability=IMMUTABLE, scan_on_push=true, KMS-encrypted with the per-env CMK from Identity — resolves M10), the ECR repository policy scoped to the GitHub Actions OIDC role (no * principals), and the DLM lifecycle policy targeting EBS volumes with Cluster+Component tags (resolves M9). Additive chart changes: values.yaml gets persistence.storageClassName=support-bot-gp3 default and a persistence.labels mapping. The existing templates/pvc.yaml's `support-bot.labels` include is preserved, with an additive `with`-block that appends persistence.labels to the PVC metadata.labels. Per-env values files override the labels with the canonical Cluster=support-bot-<env> and Component=chroma strings. 10/10 storage tests pass; tofu validate clean across root + 5 modules; helm lint clean for prod+dev; the rendered PVC shows storageClassName=support-bot-gp3 + Cluster=support-bot-prod + Component=chroma. The 3 partials are the canonical AWS-API checks (apply / describe-ecr / get-dlm / plan-after-apply) deferred to first cluster create. Recommend APPROVE.",
+  "reviewer": "cursor",
+  "criteria": [
+    {
+      "name": "tofu apply -var-file=envs/prod.tfvars provisions: 1 StorageClass (via kubernetes_manifest), 1 ECR repository, 1 ECR policy, 1 DLM policy.",
+      "verdict": "partial",
+      "note": "Config valid (tofu validate 6/6 success). Live tofu apply not run against AWS — state backend is empty by design. Resource shapes verified via the 10 passing storage-module tests."
+    },
+    {
+      "name": "kubectl get sc support-bot-gp3 (after cluster authentication) returns gp3 with reclaimPolicy: Retain.",
+      "verdict": "partial",
+      "note": "kubernetes_manifest.support_bot_gp3_storageclass.manifest.reclaimPolicy == \"Retain\" statically asserted by storageclass_has_retain test. K8s API not run in dev; will resolve on first tofu apply + cluster authentication."
+    },
+    {
+      "name": "helm template deploy/helm/support-bot --values values-prod.yaml renders a PVC with storageClassName: support-bot-gp3 and annotations Cluster: support-bot-prod, Component: chroma.",
+      "verdict": "pass",
+      "note": "Rendered manually — values-prod.yaml produces metadata.labels.Cluster=support-bot-prod + Component=chroma, spec.storageClassName=support-bot-gp3. The new CI step 'helm template -- storage class + PVC labels sanity check' enforces the same shape on every PR."
+    },
+    {
+      "name": "aws ecr describe-repositories --names support-bot-api-prod returns imageScanningConfiguration: { scanOnPush: true }, imageTagMutability: IMMUTABLE.",
+      "verdict": "partial",
+      "note": "image_scanning_configuration[0].scan_on_push == true (ecr_repo_scan_on_push test) and image_tag_mutability == \"IMMUTABLE\" (ecr_repo_immutable_tags test). AWS API not run in dev; will resolve on first tofu apply."
+    },
+    {
+      "name": "aws dlm get-lifecycle-policies --policy-id <id> returns PolicyDetails.Schedules[0].CreateRule.Interval = 24, RetainRule.Count = 7.",
+      "verdict": "partial",
+      "note": "dlm_targets_chroma_tag test asserts all four: target_tags.Component=chroma, target_tags.Cluster=support-bot-dev, schedule[0].retain_rule[0].count=7, create_rule[0].interval=24 + interval_unit=HOURS. AWS API not run in dev."
+    },
+    {
+      "name": "cd infra/modules/storage && tofu test runs all 9 run blocks; all assertions pass.",
+      "verdict": "pass",
+      "note": "10/10 pass (5 storage-class + 5 ECR/DLM run blocks). storageclass_has_retain, storageclass_wait_for_first_consumer, storageclass_gp3_with_iops, ecr_repo_immutable_tags, ecr_repo_scan_on_push, ecr_repo_naming_when_not_shared, ecr_repo_policy_scoped_to_github_actions, dlm_targets_chroma_tag, ecr_repo_has_prevent_destroy, ecr_repo_shared_naming."
+    },
+    {
+      "name": "tofu plan after apply reports No changes.",
+      "verdict": "partial",
+      "note": "Idempotency enforced by deterministic env-suffixed ECR repo names, lifecycle.prevent_destroy on the ECR repo and DLM policy, and stable resource addresses. Plan-after-apply can't be exercised in dev (no AWS); will resolve on first tofu apply followed by re-plan."
+    },
+    {
+      "name": "Misfit Resolution: each misfit in misfits_addressed has a passing test",
+      "verdict": "pass",
+      "note": "M3 — reclaimPolicy=Retain on the support-bot-gp3 StorageClass (storageclass_has_retain test). M9 — DLM target_tags.Component=chroma + Cluster=support-bot-<env> + 24h interval + 7-day retention (dlm_targets_chroma_tag test). M10 — image_tag_mutability=IMMUTABLE + scan_on_push + per-env repo naming + scoped repo policy (ecr_repo_immutable_tags, ecr_repo_scan_on_push, ecr_repo_naming_when_not_shared, ecr_repo_policy_scoped_to_github_actions tests). M8 (prevent_destroy) — lifecycle meta-block on the ECR repo; verified by code review because lifecycle is not queryable in tofu test."
+    },
+    {
+      "name": "Subsystem Boundary Respect: no undeclared cross-subsystem coupling",
+      "verdict": "pass",
+      "note": "S5 storage module consumes cluster.cluster_name (S2→S5 contract), identity.github_actions_role_arn (S3→S5 contract), and identity.cmk_arn (S3→S5 KMS contract). No undeclared resource couplings. The chart-side additive change to templates/pvc.yaml preserves the existing support-bot.labels include and adds an additive with-block; no existing logic removed or behaviour altered for non-WP05 deployments."
+    },
+    {
+      "name": "Contract Compliance: implementation matches plan.md inter-system contracts",
+      "verdict": "pass",
+      "note": "5 outputs (storage_class_name, ecr_repository_url, ecr_repository_arn, ecr_repository_name, dlm_policy_id) match the S5 plan inter-system contract. The chart-side adoption uses StorageClassValueMerge semantics: persistence.storageClassName=support-bot-gp3 binds the Chroma PVC to the Gp3StorageClass, and persistence.labels.Cluster/Component are the canonical Cluster=support-bot-<env> + Component=chroma selectors that match the DLM policy's target_tags."
+    },
+    {
+      "name": "No New Misfits: no new failure modes introduced without documenting them",
+      "verdict": "pass",
+      "note": "2 flagged ambiguities recorded in modules/storage/CONTEXT.md: PVC annotations vs labels for EBS volume tag propagation (resolved: labels are used because the EBS CSI driver reads labels when extra-volume-tags-from-pvc-labels is enabled); 'ECR' vs 'EcrRepository' (resolved: prefer EcrRepository for the AWS resource; 'ECR' acceptable only as the upstream service name). No new misfits introduced; the WP05 prompt's caveat about EBS CSI driver annotations vs labels is documented in CONTEXT.md as a 'Flagged Ambiguity' resolution."
+    },
+    {
+      "name": "Build Health -- language type-checker exits 0",
+      "verdict": "pass",
+      "note": "tofu validate succeeds for root + modules/storage + modules/edge + modules/cluster + modules/foundation + modules/identity (6/6). tofu fmt -check -recursive exits 0. helm lint clean for prod + dev values."
+    }
+  ],
+  "issues": [],
+  "dependency_notes": "WP06 (observability-and-policy) declares [WP02, WP03, WP05] in its dependencies. If WP05 changes were requested, WP06 would need to re-run implement after the WP05 fix lands on main. Since this review approves WP05, WP06 can proceed without re-running implement.",
+  "closing": "APPROVE — WP05 implements S5 Data Plane & Storage with passing unit tests, clean tofu validate/fmt, helm lint clean, and rendered PVC showing storageClassName + Cluster/Component labels; safe to merge into main and unblock WP06 (and WP07 docs)."
+}

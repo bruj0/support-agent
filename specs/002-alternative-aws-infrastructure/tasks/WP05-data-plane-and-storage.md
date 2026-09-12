@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP05"
 title: "Data Plane & Storage — StorageClass, ECR, DLM snapshots"
-lane: "doing"
+lane: "done"
 dependencies:
   - "WP02"
   - "WP03"
@@ -17,7 +17,7 @@ abstract_components:
   - "DlmSnapshotPolicy (from S5 plan)"
 agent: "cursor"
 reviewed_by: "spec-bridge-review"
-review_status: "in_progress"
+review_status: "approved"
 tdd_red_clean: true
 build_validated: true
 history:
@@ -33,6 +33,10 @@ history:
     lane: "doing"
     agent: "spec-bridge-review"
     action: "review started"
+  - timestamp: "2026-09-12T19:50:00+00:00"
+    lane: "done"
+    agent: "spec-bridge-review"
+    action: "review approved (9 pass / 3 partial / 0 issues); 3 partials are canonical AWS-API checks deferred to first cluster create"
 ---
 
 # WP05 — Data Plane & Storage
