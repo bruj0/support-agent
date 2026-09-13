@@ -1,6 +1,8 @@
 # values-prod.yaml -- 3 replicas behind a PDB, HPA on CPU,
 # ingress enabled, larger PVC.
 
+env: "prod"
+
 replicaCount: 3
 config:
   logLevel: INFO

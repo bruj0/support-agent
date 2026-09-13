@@ -1,5 +1,7 @@
 # values-dev.yaml -- single-replica local-dev stack.
 
+env: "dev"
+
 replicaCount: 1
 config:
   logLevel: DEBUG
