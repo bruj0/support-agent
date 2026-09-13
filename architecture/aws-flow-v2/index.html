@@ -1,0 +1,2642 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Customer-support RAG agent — public documentation">
+      
+      
+      
+        <link rel="canonical" href="https://bruj0.github.io/support-agent/architecture/aws-flow-v2/">
+      
+      
+        <link rel="prev" href="../local-flow/">
+      
+      
+        <link rel="next" href="../observability/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>AWS Infrastructure - support-agent Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/panzoom.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <meta name="panzoom-theme" content="material">
+<meta name="panzoom-data" content='{"selectors": [".d2", ".mermaid"], "initial_zoom_level": 1.0}'> </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#aws-deployment-v2-opentofu-managed" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="support-agent Docs" class="md-header__button md-logo" aria-label="support-agent Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5 2.5 2.5 0 0 0 7.5 18a2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 7.5 13m9 0a2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5 2.5 2.5 0 0 0-2.5-2.5"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            support-agent Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              AWS Infrastructure
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/bruj0/support-agent" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bruj0/support-agent
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="support-agent Docs" class="md-nav__button md-logo" aria-label="support-agent Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5 2.5 2.5 0 0 0 7.5 18a2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 7.5 13m9 0a2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5 2.5 2.5 0 0 0-2.5-2.5"/></svg>
+
+    </a>
+    support-agent Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/bruj0/support-agent" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bruj0/support-agent
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../c4/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture (C4)
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture (C4)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../c4/1-system-context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. System Context
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../c4/2-containers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../c4/3-components/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3. Components
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deep Dives
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Deep Dives
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../c4/4-deep-dive-ingestion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ingestion pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../c4/4-deep-dive-answering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Answering workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../c4/4-deep-dive-observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability (one request_id)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../c4/4-deep-dive-deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment (Helm chart)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../local-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Infrastructure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS Infrastructure
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS Infrastructure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-this-feature-provisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. What this feature provisions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-workspace-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Workspace layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-end-to-end-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. End-to-end topology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-the-six-subsystems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. The six subsystems
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. The six subsystems">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-foundation-s1-inframodulesfoundation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Foundation (S1) — infra/modules/foundation/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-cluster-compute-s2-inframodulescluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Cluster &amp; Compute (S2) — infra/modules/cluster/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-identity-secrets-s3-inframodulesidentity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Identity &amp; Secrets (S3) — infra/modules/identity/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-edge-traffic-s4-inframodulesedge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Edge &amp; Traffic (S4) — infra/modules/edge/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-data-plane-storage-s5-inframodulesstorage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 Data Plane &amp; Storage (S5) — infra/modules/storage/
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.5 Data Plane &amp; Storage (S5) — infra/modules/storage/">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#451-dlm-daily-snapshot-how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5.1 DLM daily snapshot — how it works
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.5.1 DLM daily snapshot — how it works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#end-to-end-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        End-to-end pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step-by-step
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restore-procedure-operator-playbook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restore procedure (operator playbook)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operational-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operational notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46-observability-policy-s6-inframodulesobservability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6 Observability &amp; Policy (S6) — infra/modules/observability/
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-bootstrap-main-workspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Bootstrap → main workspace
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-apply-destroy-lifecycle-per-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Apply / destroy lifecycle per environment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-secrets-chain-end-to-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Secrets chain (end-to-end)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-observability-wiring-request_id-x-ray-cloudwatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Observability wiring (request_id → X-Ray + CloudWatch)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-network-policy-posture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Network policy posture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-why-the-chart-is-not-installed-by-opentofu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Why the chart is not installed by OpenTofu
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-ci-secret-scan-lint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. CI / secret-scan / lint
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-operator-playbook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Operator playbook
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Operator playbook">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#i-cant-reach-the-eks-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "I can't reach the EKS API"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pods-cant-reach-apiopenaicom" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "Pods can't reach api.openai.com"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#x-ray-is-empty-but-logs-are-flowing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "X-Ray is empty but logs are flowing"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-ecr-push-is-denied" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "The ECR push is denied"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-lock-is-stuck" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "State lock is stuck"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openai-key-rotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "OpenAI key rotation"
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-a-resource-count-rough-per-env" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix A — Resource count (rough, per env)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-this-feature-provisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. What this feature provisions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-workspace-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Workspace layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-end-to-end-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. End-to-end topology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-the-six-subsystems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. The six subsystems
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. The six subsystems">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-foundation-s1-inframodulesfoundation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Foundation (S1) — infra/modules/foundation/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-cluster-compute-s2-inframodulescluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Cluster &amp; Compute (S2) — infra/modules/cluster/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-identity-secrets-s3-inframodulesidentity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Identity &amp; Secrets (S3) — infra/modules/identity/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-edge-traffic-s4-inframodulesedge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Edge &amp; Traffic (S4) — infra/modules/edge/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-data-plane-storage-s5-inframodulesstorage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 Data Plane &amp; Storage (S5) — infra/modules/storage/
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.5 Data Plane &amp; Storage (S5) — infra/modules/storage/">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#451-dlm-daily-snapshot-how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5.1 DLM daily snapshot — how it works
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.5.1 DLM daily snapshot — how it works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#end-to-end-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        End-to-end pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step-by-step
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restore-procedure-operator-playbook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restore procedure (operator playbook)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operational-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operational notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46-observability-policy-s6-inframodulesobservability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6 Observability &amp; Policy (S6) — infra/modules/observability/
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-bootstrap-main-workspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Bootstrap → main workspace
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-apply-destroy-lifecycle-per-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Apply / destroy lifecycle per environment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-secrets-chain-end-to-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Secrets chain (end-to-end)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-observability-wiring-request_id-x-ray-cloudwatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Observability wiring (request_id → X-Ray + CloudWatch)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-network-policy-posture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Network policy posture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-why-the-chart-is-not-installed-by-opentofu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Why the chart is not installed by OpenTofu
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-ci-secret-scan-lint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. CI / secret-scan / lint
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-operator-playbook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Operator playbook
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Operator playbook">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#i-cant-reach-the-eks-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "I can't reach the EKS API"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pods-cant-reach-apiopenaicom" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "Pods can't reach api.openai.com"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#x-ray-is-empty-but-logs-are-flowing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "X-Ray is empty but logs are flowing"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-ecr-push-is-denied" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "The ECR push is denied"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-lock-is-stuck" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "State lock is stuck"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openai-key-rotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "OpenAI key rotation"
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-a-resource-count-rough-per-env" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix A — Resource count (rough, per env)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="aws-deployment-v2-opentofu-managed">AWS deployment (v2 — OpenTofu-managed)<a class="headerlink" href="#aws-deployment-v2-opentofu-managed" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>Audience:</strong> operators and reviewers of the <code>002-alternative-aws-infrastructure</code>
+feature. This document is the prose companion to the code under
+<a href="https://github.com/bruj0/support-agent/tree/main/infra"><code>infra/</code></a>.
+It supersedes <a href="../aws-flow/"><code>aws-flow.md</code></a>, which describes the
+pre-OpenTofu hand-rolled design.</p>
+<p><strong>Source of truth:</strong> every claim below maps to a concrete resource in
+<code>infra/{bootstrap,modules,root.tf}</code>. When the code and this doc
+disagree, the code wins and this file is wrong — open a PR.</p>
+</blockquote>
+<hr />
+<h2 id="table-of-contents">Table of contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="#1-what-this-feature-provisions">1. What this feature provisions</a></li>
+<li><a href="#2-workspace-layout">2. Workspace layout</a></li>
+<li><a href="#3-end-to-end-topology">3. End-to-end topology</a></li>
+<li><a href="#4-the-six-subsystems">4. The six subsystems</a></li>
+<li><a href="#41-foundation-s1-inframodulesfoundation">4.1 Foundation (<code>S1</code>)</a></li>
+<li><a href="#42-cluster-compute-s2-inframodulescluster">4.2 Cluster &amp; Compute (<code>S2</code>)</a></li>
+<li><a href="#43-identity-secrets-s3-inframodulesidentity">4.3 Identity &amp; Secrets (<code>S3</code>)</a></li>
+<li><a href="#44-edge-traffic-s4-inframodulesedge">4.4 Edge &amp; Traffic (<code>S4</code>)</a></li>
+<li><a href="#45-data-plane-storage-s5-inframodulesstorage">4.5 Data Plane &amp; Storage (<code>S5</code>)</a><ul>
+<li><a href="#451-dlm-daily-snapshot-how-it-works">4.5.1 DLM daily snapshot — how it works</a></li>
+</ul>
+</li>
+<li><a href="#46-observability-policy-s6-inframodulesobservability">4.6 Observability &amp; Policy (<code>S6</code>)</a></li>
+<li><a href="#5-bootstrap-main-workspace">5. Bootstrap → main workspace</a></li>
+<li><a href="#6-apply-destroy-lifecycle-per-environment">6. Apply / destroy lifecycle per environment</a></li>
+<li><a href="#7-secrets-chain-end-to-end">7. Secrets chain (end-to-end)</a></li>
+<li><a href="#8-observability-wiring-request_id-x-ray-cloudwatch">8. Observability wiring (request_id → X-Ray + CloudWatch)</a></li>
+<li><a href="#9-network-policy-posture">9. Network policy posture</a></li>
+<li><a href="#10-why-the-chart-is-not-installed-by-opentofu">10. Why the chart is <em>not</em> installed by OpenTofu</a></li>
+<li><a href="#11-ci-secret-scan-lint">11. CI / secret-scan / lint</a></li>
+<li><a href="#12-operator-playbook">12. Operator playbook</a></li>
+</ul>
+<hr />
+<h2 id="1-what-this-feature-provisions">1. What this feature provisions<a class="headerlink" href="#1-what-this-feature-provisions" title="Permanent link">&para;</a></h2>
+<p>Two independent EKS clusters (<code>support-bot-dev</code>, <code>support-bot-prod</code>)
+in <code>eu-central-1</code>, each with:</p>
+<ul>
+<li>a dedicated VPC (10.0.0.0/16 by default, 3 AZs, single NAT gateway
+  in dev),</li>
+<li>the per-env bootstrap remote-state backend (S3 + DynamoDB lock +
+  per-env CMK),</li>
+<li>EKS 1.30 with the <strong>Pod Identity Agent</strong> addon, VPC CNI
+  (<code>enableNetworkPolicy = true</code>), and a baseline managed node group
+  (<code>m7i.large × 2</code>, AL2023, On-Demand),</li>
+<li>Karpenter v1 (<code>oci://public.ecr.aws/karpenter/karpenter</code>, version
+  pinned in tfvars) — absorbed by HPA scale-out,</li>
+<li>per-env KMS CMK, Secrets Manager secrets for <code>openai-api-key</code> and
+  (optional) <code>chroma-auth-token</code>,</li>
+<li>External Secrets Operator, ADOT Collector, and AWS Load Balancer
+  Controller IAM roles with Pod Identity associations,</li>
+<li>an ACM certificate (DNS-validated, wildcard SAN
+  <code>*.{env}.{domain_suffix}</code>), a WAFv2 web ACL with AWS managed rule
+  groups + 1000 req/IP rate limit, an internal ALB, an ALB Ingress,</li>
+<li>an S3 bucket for ALB access logs (KMS-encrypted, 30-day expiry →
+  STANDARD_IA at day 7),</li>
+<li>an ECR repository (KMS-encrypted, immutable tags, scan-on-push)
+  with a push policy scoped to the GitHub Actions OIDC role,</li>
+<li>a DLM daily snapshot policy for the Chroma PVC (7-day retention,
+  target tags <code>Cluster=support-bot-{env}</code> / <code>Component=chroma</code>),</li>
+<li>the ADOT Collector (DaemonSet, <code>hostNetwork</code>, OTel gRPC <code>:4317</code> and
+  HTTP <code>:4318</code>) exporting traces to <strong>AWS X-Ray</strong> and metrics to
+  <strong>CloudWatch EMF</strong>,</li>
+<li>Pod Security Standards <code>restricted</code> on the <code>support-bot</code> namespace,
+  and three <code>NetworkPolicy</code> resources (<code>default-deny</code>, <code>api-allow</code>,
+  <code>chroma-allow</code>).</li>
+</ul>
+<p>It does <strong>not</strong> install the Helm chart, run GitHub Actions workflows,
+or set up Argo CD / Flux — those are downstream CI/CD features.</p>
+<hr />
+<h2 id="2-workspace-layout">2. Workspace layout<a class="headerlink" href="#2-workspace-layout" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>infra/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── bootstrap/                 # one-shot: S3 state backend + DynamoDB lock + KMS CMK
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── modules/
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   ├── foundation/            # S1 — VPC, subnets, NAT, VPC endpoints
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   ├── cluster/               # S2 — EKS, baseline MNG, Pod Identity Agent, Karpenter
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   ├── identity/              # S3 — per-env CMK, Secrets Manager, ESO/ADOT/LBC/GH IAM roles
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   ├── edge/                  # S4 — ACM, Route53, WAFv2, ALBC helm, Ingress
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   ├── storage/               # S5 — gp3 StorageClass, ECR, DLM
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   └── observability/         # S6 — ADOT helm, CloudWatch log groups, PSS, NetworkPolicies
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>├── envs/
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│   ├── dev.tfvars
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│   └── prod.tfvars
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>├── root.tf                    # orchestration: which env -&gt; which modules, in which order
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>├── root_variables.tf          # all knobs (with defaults where safe)
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>├── root_outputs.tf
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>├── versions.tf
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>└── README.md                  # operator how-to (bootstrap, init, apply, destroy, troubleshoot)
+</code></pre></div>
+<p>The composition is wired in <code>root.tf</code>. Per-env knobs live in
+<code>envs/{env}.tfvars</code>; the secrets <code>openai_api_key</code> and
+<code>chroma_auth_token</code> are passed at apply time via <code>TF_VAR_*</code> env vars
+(NFR-003), never stored in tfvars.</p>
+<hr />
+<h2 id="3-end-to-end-topology">3. End-to-end topology<a class="headerlink" href="#3-end-to-end-topology" title="Permanent link">&para;</a></h2>
+<div class="panzoom-box" data-key="alt" id="panzoom0" oncontextmenu="return false;">
+    <div class="panzoom-info-box panzoom-info-box-top">
+Hold "Alt" / "Option" to enable pan &amp; zoom
+</div>
+    <nav class="panzoom-nav panzoom-top-nav panzoom-nav-infobox-top">
+    <button class="panzoom-reset panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M125.7 160l50.3 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L48 224c-17.7 0-32-14.3-32-32L16 64c0-17.7 14.3-32 32-32s32 14.3 32 32l0 51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"></path>
+    </svg>
+</button><button class="panzoom-max panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z"></path>
+    </svg>
+</button><button class="panzoom-min panzoom-button panzoom-hidden">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z"></path>
+    </svg>
+</button>
+    </nav>
+    <pre class="mermaid"><code>flowchart LR
+    USER(["End user&lt;br/&gt;HTTPS"])
+
+    subgraph DNS["DNS"]
+        R53["Route 53&lt;br/&gt;parent zone"]
+    end
+
+    subgraph EDGE["Edge (S4)"]
+        ACM["ACM cert&lt;br/&gt;*.env.support-bot.example.com"]
+        WAF["WAFv2 Web ACL&lt;br/&gt;Common + SQLi + BotControl&lt;br/&gt;+ RateLimit 1000/IP"]
+        ALB["Internal ALB&lt;br/&gt;scheme: internal&lt;br/&gt;TLS13-1-2-2021-06"]
+        ALBC["AWS Load Balancer&lt;br/&gt;Controller (kube-system)"]
+        LOGS["S3 access-log bucket&lt;br/&gt;30d -&gt; STANDARD_IA&lt;br/&gt;KMS-encrypted"]
+    end
+
+    subgraph VPC["VPC (S1)"]
+        PUB["Public subnets&lt;br/&gt;(NAT)"]
+        PRIV["Private subnets&lt;br/&gt;(EKS nodes)"]
+        EP["VPC endpoints&lt;br/&gt;SecretsManager, STS,&lt;br/&gt;ECR api/dkr, Logs, Monitoring, S3 gw"]
+    end
+
+    subgraph EKS["EKS (S2)"]
+        CTRL["Control plane"]
+        API["API Deployment&lt;br/&gt;HPA 2-6"]
+        ING["Ingestion Job&lt;br/&gt;(post-install hook)"]
+        CHR["Chroma Deployment&lt;br/&gt;gp3 PVC"]
+        PODID["Pod Identity Agent&lt;br/&gt;addon"]
+        BASELINE["Baseline MNG&lt;br/&gt;2x m7i.large&lt;br/&gt;AL2023 On-Demand"]
+        KARP["Karpenter v1&lt;br/&gt;NodePool burst"]
+    end
+
+    subgraph OBS["Observability (S6)"]
+        ADOT["ADOT Collector&lt;br/&gt;DaemonSet hostNetwork&lt;br/&gt;OTLP 4317/4318"]
+        XRAY["AWS X-Ray"]
+        EMF["CloudWatch&lt;br/&gt;EMF metrics"]
+        CWL["CloudWatch Logs&lt;br/&gt;/aws/eks/support-bot-&amp;#123;env&amp;#125;/&amp;#123;application,otel&amp;#125;"]
+    end
+
+    subgraph SEC["Identity (S3)"]
+        CMK["Per-env CMK&lt;br/&gt;alias/support-bot-&amp;#123;env&amp;#125;-cmk"]
+        SM["Secrets Manager&lt;br/&gt;openai-api-key&lt;br/&gt;chroma-auth-token"]
+        ESO["External Secrets&lt;br/&gt;Operator (Workload Identity)"]
+    end
+
+    subgraph GHCI["CI"]
+        GHOIDC["GitHub Actions&lt;br/&gt;OIDC role"]
+        ECR["ECR&lt;br/&gt;support-bot-api-&amp;#123;env&amp;#125;&lt;br/&gt;immutable, KMS, scan-on-push"]
+    end
+
+    USER --&gt; R53 --&gt; ACM --&gt; WAF --&gt; ALB --&gt; API
+    ALBC -.manages.-&gt; ALB
+    ALB -.access logs.-&gt; LOGS
+    API -.HTTPS.-&gt; OPENAI(["OpenAI&lt;br/&gt;api.openai.com"])
+    API -.HTTPS.-&gt; CHR
+    ING -.HTTPS.-&gt; SM
+    ESO -.reads.-&gt; SM
+    ESO -.writes k8s Secret.-&gt; API
+    ING -.reads k8s Secret.-&gt; API
+    API --&gt; ADOT --&gt; XRAY
+    ADOT --&gt; EMF
+    API -.stdout JSON.-&gt; CWL
+    ADOT -.stdout JSON.-&gt; CWL
+    GHOIDC -.assumes.-&gt; CMK
+    GHOIDC -.push.-&gt; ECR
+    ECR -.pull.-&gt; API
+    PRIV -.egress via NAT.-&gt; OPENAI
+    PRIV -.private.-&gt; EP</code></pre> 
+    
+</div>
+<p>Key properties visible in this diagram:</p>
+<ul>
+<li><strong>No public subnet for workloads.</strong> EKS nodes live in private
+  subnets; the ALB is <code>internal-scheme</code> and is reached via the
+  Route53 → ACM → WAF → ALB path. Operators reach the EKS API via
+  <code>endpoint_public_access = true</code> but only from <code>var.admin_cidr</code>.</li>
+<li><strong>No NAT egress for AWS service calls.</strong> VPC endpoints cover
+  Secrets Manager, STS, ECR (<code>api</code> and <code>dkr</code>), CloudWatch Logs, CloudWatch
+  Monitoring, and S3 (gateway endpoint). NAT is only used for OpenAI
+  and the ADOT → X-Ray fallback path.</li>
+<li><strong>One <code>request_id</code> end-to-end.</strong> The application middleware sets it;
+  ADOT forwards the trace to X-Ray; logs flow to CloudWatch Logs
+  with the same <code>request_id</code> injected by <code>opentelemetry-instrumentation-logging</code>.</li>
+</ul>
+<hr />
+<h2 id="4-the-six-subsystems">4. The six subsystems<a class="headerlink" href="#4-the-six-subsystems" title="Permanent link">&para;</a></h2>
+<h3 id="41-foundation-s1-inframodulesfoundation">4.1 Foundation (<code>S1</code>) — <code>infra/modules/foundation/</code><a class="headerlink" href="#41-foundation-s1-inframodulesfoundation" title="Permanent link">&para;</a></h3>
+<p>Provisions:</p>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>aws_vpc.main</code></td>
+<td><code>var.vpc_cidr</code> (default <code>10.0.0.0/16</code>); DNS support + hostnames enabled.</td>
+</tr>
+<tr>
+<td><code>aws_subnet.public[az_count]</code></td>
+<td><code>/24</code> slice per AZ; <code>map_public_ip_on_launch = false</code>.</td>
+</tr>
+<tr>
+<td><code>aws_subnet.private[az_count]</code></td>
+<td><code>/24</code> slice per AZ, offset 100 to keep public/private disjoint.</td>
+</tr>
+<tr>
+<td><code>aws_eip.nat[*]</code> + <code>aws_nat_gateway.main[*]</code></td>
+<td><code>nat_gateway_count</code> (default 1) — dev runs single NAT for cost; prod overrides to 3 for AZ-isolated egress.</td>
+</tr>
+<tr>
+<td><code>aws_internet_gateway.main</code>, route tables + associations</td>
+<td>Standard 3-tier routing.</td>
+</tr>
+<tr>
+<td><code>aws_security_group.vpc_endpoints</code></td>
+<td>Allow HTTPS (443) from <code>var.vpc_cidr</code>; egress open.</td>
+</tr>
+<tr>
+<td><code>aws_vpc_endpoint.interface[6]</code></td>
+<td><code>secretsmanager</code>, <code>sts</code>, <code>ecr.api</code>, <code>ecr.dkr</code>, <code>logs</code>, <code>monitoring</code> — <code>private_dns_enabled = true</code>.</td>
+</tr>
+<tr>
+<td><code>aws_vpc_endpoint.s3</code></td>
+<td>Gateway endpoint on every private route table; free S3 egress.</td>
+</tr>
+</tbody>
+</table>
+<p>Outputs: <code>vpc_id</code>, <code>public_subnet_ids</code>, <code>private_subnet_ids</code>,
+<code>vpc_endpoint_security_group_id</code>.</p>
+<h3 id="42-cluster-compute-s2-inframodulescluster">4.2 Cluster &amp; Compute (<code>S2</code>) — <code>infra/modules/cluster/</code><a class="headerlink" href="#42-cluster-compute-s2-inframodulescluster" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>aws_eks_cluster.main</code></td>
+<td>Kubernetes <strong>1.30</strong>, <code>endpoint_public_access = true</code> restricted to <code>var.admin_cidr</code>, <code>endpoint_private_access = true</code>. Cluster log types: <code>api</code>, <code>audit</code>, <code>authenticator</code>. Secret encryption with the per-env CMK (<code>encryption_config { resources = ["secrets"] }</code>).</td>
+</tr>
+<tr>
+<td><code>aws_iam_openid_connect_provider.oidc</code></td>
+<td>Built from the cluster's OIDC issuer URL; trusted by all Pod Identity associations in <code>S3</code>.</td>
+</tr>
+<tr>
+<td><code>aws_eks_addon.pod_identity_agent</code></td>
+<td>Required for every IAM role created in <code>S3</code>; <code>addon_version</code> is the latest matching the cluster version.</td>
+</tr>
+<tr>
+<td><code>aws_eks_addon.vpc_cni</code></td>
+<td>Pinned with <code>configuration_values = { enableNetworkPolicy = "true" }</code> — required for the <code>NetworkPolicy</code> resources in <code>S6</code>.</td>
+</tr>
+<tr>
+<td><code>aws_eks_node_group.baseline</code></td>
+<td><code>m7i.large × var.baseline_desired_size</code> (default 2), On-Demand, AL2023, 50 GiB root disk, tainted <code>workload=baseline:NO_SCHEDULE</code>, labelled <code>workload=baseline</code> and <code>karpenter.sh/discovery={cluster}</code>.</td>
+</tr>
+<tr>
+<td><code>helm_release.karpenter</code></td>
+<td><code>oci://public.ecr.aws/karpenter/karpenter</code>, version <code>var.karpenter_version</code> (default <code>1.0.0</code>); SA annotated with <code>eks.amazonaws.com/role-arn = var.karpenter_iam_role_arn</code>. <strong>Skipped under <code>test_mode = true</code></strong> (operator-credentialed applies set this to <code>false</code>).</td>
+</tr>
+<tr>
+<td>Security groups</td>
+<td><code>cluster-sg</code> ↔ <code>nodes-sg</code> mutual <code>0–65535/tcp</code> ingress; nodes egress open.</td>
+</tr>
+</tbody>
+</table>
+<p>Two more IAM roles live here for convenience but are scoped to the
+cluster lifecycle: <code>cluster-role</code> (EKS), <code>node-role</code> (EC2), and
+<code>pod-identity-agent-role</code> (addon).</p>
+<p>The <code>NodePool</code> and <code>EC2NodeClass</code> are <strong>not</strong> in this module — they
+are applied with <code>kubectl apply -f</code> against the live cluster after
+identity lands (see <code>infra/modules/cluster/CONTEXT.md</code>).</p>
+<h3 id="43-identity-secrets-s3-inframodulesidentity">4.3 Identity &amp; Secrets (<code>S3</code>) — <code>infra/modules/identity/</code><a class="headerlink" href="#43-identity-secrets-s3-inframodulesidentity" title="Permanent link">&para;</a></h3>
+<p>Provisions in dependency order:</p>
+<ol>
+<li><strong><code>aws_kms_key.env_cmk</code></strong> — per-env CMK with
+   <code>enable_key_rotation = true</code>. The key policy grants EKS envelope
+   encryption <strong>only</strong> when the encryption context matches
+   <code>cluster = support-bot-{env}</code>.</li>
+<li><strong><code>aws_secretsmanager_secret.openai</code></strong> (and optional <code>chroma</code>) —
+   <code>kms_key_id = cmk.arn</code>, <code>recovery_window_in_days = 30</code>,
+   <code>lifecycle.prevent_destroy = true</code> (NFR-003). Initial
+   <code>secret_string</code> is taken from <code>TF_VAR_openai_api_key</code> /
+   <code>TF_VAR_chroma_auth_token</code> at apply time.</li>
+<li><strong>Pod-Identity IAM roles</strong> (only created when
+   <code>var.eks_oidc_provider_arn != null</code>):</li>
+<li><code>external-secrets-operator-{env}</code> — policy
+     <code>secretsmanager:GetSecretValue</code> + <code>DescribeSecret</code> scoped to
+     both secret ARNs, plus <code>kms:Decrypt</code> / <code>kms:DescribeKey</code> scoped
+     to the per-env CMK.</li>
+<li><code>adot-collector-{env}</code> — <code>xray:PutTraceSegments</code>,
+     <code>xray:PutTelemetryRecords</code>, and CloudWatch Logs writes scoped
+     to <code>/aws/eks/support-bot-{env}/*</code>.</li>
+<li><code>aws-load-balancer-controller-{env}</code> — verbatim AWS-published
+     ALBC policy with <code>Resource</code> lists narrowed to the per-env
+     ACM / WAFv2 / ELBv2 ARN patterns.</li>
+<li><code>karpenter-controller-{env}</code> — placeholder today; the
+     <code>cluster/main.tf</code> <code>helm_release.karpenter</code> uses the value
+     passed in from <code>root.tf</code> (<code>module.cluster.karpenter_iam_role_arn</code>).</li>
+<li><strong>GitHub Actions OIDC provider + role</strong> —
+   <code>token.actions.githubusercontent.com</code> trusted; role assumed by
+   <code>repo:*/{domain_suffix}:ref:refs/heads/main</code>. The role ARN is
+   passed into the storage module (<code>S5</code>) to scope the ECR push
+   policy.</li>
+</ol>
+<p>All Pod Identity assume-role policies use the
+<code>aws:RequestTag/cluster = support-bot-{env}</code> condition so a stolen
+token cannot be replayed against another cluster.</p>
+<h3 id="44-edge-traffic-s4-inframodulesedge">4.4 Edge &amp; Traffic (<code>S4</code>) — <code>infra/modules/edge/</code><a class="headerlink" href="#44-edge-traffic-s4-inframodulesedge" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>aws_acm_certificate.env_cert</code></td>
+<td>DNS-validated, <code>&lt;env&gt;.&lt;domain_suffix&gt;</code> + wildcard SAN <code>*.&lt;env&gt;.&lt;domain_suffix&gt;</code>. <code>lifecycle.create_before_destroy = true</code>.</td>
+</tr>
+<tr>
+<td><code>aws_route53_record.env_cert_validation[*]</code></td>
+<td>One per <code>domain_validation_options</code>; TTL 60; <code>allow_overwrite = true</code>.</td>
+</tr>
+<tr>
+<td><code>aws_acm_certificate_validation.env_cert</code></td>
+<td>10-min create timeout; fails the apply if validation doesn't complete.</td>
+</tr>
+<tr>
+<td><code>aws_wafv2_web_acl.env_waf</code></td>
+<td>REGIONAL, attached to the ALB. <strong>Four rules, in priority order:</strong> (1) <code>AWSManagedRulesCommonRuleSet</code> (override <code>none</code>), (2) <code>AWSManagedRulesSQLiRuleSet</code>, (3) <code>AWSManagedRulesBotControlRuleSet</code>, (4) <code>RateLimitPerIp</code> — <code>block</code>, <code>limit = 1000</code>, <code>aggregate_key_type = IP</code>. All rules have CloudWatch metrics + sampled requests enabled.</td>
+</tr>
+<tr>
+<td><code>aws_s3_bucket.alb_access_logs</code></td>
+<td><code>force_destroy = false</code>, <code>lifecycle.prevent_destroy = true</code>. Bucket-owner-enforced ACL, all four public-access blocks, KMS-encrypted (<code>bucket_key_enabled = true</code>), 30-day expiry → STANDARD_IA at day 7, noncurrent versions expire after 30d, incomplete multipart aborts at 7d. Policy grants <code>s3:PutObject</code> to the regional ELB service account and denies any non-TLS request.</td>
+</tr>
+<tr>
+<td><code>helm_release.aws_load_balancer_controller</code></td>
+<td><code>aws-load-balancer-controller</code> chart <code>1.7.2</code>, replicaCount 2, SA annotated with the Pod-Identity association ARN from <code>S3</code>.</td>
+</tr>
+<tr>
+<td><code>kubernetes_namespace_v1.env</code></td>
+<td>Creates the <code>support-bot</code> namespace.</td>
+</tr>
+<tr>
+<td><code>kubernetes_manifest.env_ingress</code></td>
+<td>One <code>Ingress</code> resource with <code>alb.ingress.kubernetes.io/scheme = internal</code>, <code>target-type = ip</code>, <code>ssl-policy = ELBSecurityPolicy-TLS13-1-2-2021-06</code>, health check <code>/healthz</code> every 15s, <code>wafv2-acl-arn</code> attached.</td>
+</tr>
+</tbody>
+</table>
+<p>The Helm release for the application chart is <strong>not</strong> applied here
+(see §10).</p>
+<h3 id="45-data-plane-storage-s5-inframodulesstorage">4.5 Data Plane &amp; Storage (<code>S5</code>) — <code>infra/modules/storage/</code><a class="headerlink" href="#45-data-plane-storage-s5-inframodulesstorage" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kubernetes_manifest.support_bot_gp3_storageclass</code></td>
+<td><code>support-bot-gp3</code>, <strong>not</strong> the default class. <code>provisioner = ebs.csi.aws.com</code>, <code>reclaimPolicy = Retain</code> (NFR-005 / WP03), <code>volumeBindingMode = WaitForFirstConsumer</code>, <code>allowVolumeExpansion = true</code>, gp3 params <code>iops = 3000</code>, <code>throughput = 250</code>, <code>encrypted = true</code>.</td>
+</tr>
+<tr>
+<td><code>aws_ecr_repository.support_bot_api</code></td>
+<td><code>image_tag_mutability = IMMUTABLE</code>, <code>scan_on_push = true</code>, KMS-encrypted with the per-env CMK, <code>lifecycle.prevent_destroy = true</code>. Name: <code>support-bot-api-{env}</code> by default; <code>var.shared_ecr = true</code> switches to <code>support-bot-api</code>.</td>
+</tr>
+<tr>
+<td><code>aws_ecr_repository_policy.support_bot_api</code></td>
+<td>Two statements: (a) <code>AllowGitHubActionsPush</code> scoped to <code>var.github_actions_role_arn</code> with the seven push verbs; (b) <code>AllowAccountPull</code> for account root with <code>GetDownloadUrlForLayer</code> / <code>BatchGetImage</code> / <code>DescribeImages</code>.</td>
+</tr>
+<tr>
+<td><code>aws_dlm_lifecycle_policy.chroma_snapshot</code></td>
+<td><code>EBS_SNAPSHOT_MANAGEMENT</code>; target tags <code>Cluster = support-bot-{env}</code>, <code>Component = chroma</code>; schedule <code>daily-7day-retention</code> — daily at 03:00 UTC, retain 7, <code>copy_tags = true</code>.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="451-dlm-daily-snapshot-how-it-works">4.5.1 DLM daily snapshot — how it works<a class="headerlink" href="#451-dlm-daily-snapshot-how-it-works" title="Permanent link">&para;</a></h4>
+<p>The Chroma vector store is the only stateful piece of the system;
+losing it costs the user one full re-ingestion (60 s budget per
+NFR-002, but the OpenAI-assisted path makes it longer). Daily EBS
+snapshots give us a 7-day recovery window without paying for a
+multi-AZ HA database.</p>
+<h5 id="end-to-end-pipeline">End-to-end pipeline<a class="headerlink" href="#end-to-end-pipeline" title="Permanent link">&para;</a></h5>
+<div class="panzoom-box" data-key="alt" id="panzoom0" oncontextmenu="return false;">
+    <div class="panzoom-info-box panzoom-info-box-top">
+Hold "Alt" / "Option" to enable pan &amp; zoom
+</div>
+    <nav class="panzoom-nav panzoom-top-nav panzoom-nav-infobox-top">
+    <button class="panzoom-reset panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M125.7 160l50.3 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L48 224c-17.7 0-32-14.3-32-32L16 64c0-17.7 14.3-32 32-32s32 14.3 32 32l0 51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"></path>
+    </svg>
+</button><button class="panzoom-max panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z"></path>
+    </svg>
+</button><button class="panzoom-min panzoom-button panzoom-hidden">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z"></path>
+    </svg>
+</button>
+    </nav>
+    <pre class="mermaid"><code>flowchart LR
+    subgraph CHART["Helm chart (values-&amp;#123;env&amp;#125;.yaml)"]
+        PVC["templates/pvc.yaml&lt;br/&gt;PVC metadata.labels"]
+    end
+    subgraph CSI["EBS CSI driver"]
+        PROV["PersistentVolume&lt;br/&gt;+ EBS Volume&lt;br/&gt;(tagged Cluster, Component)"]
+    end
+    subgraph DLM["AWS Data Lifecycle Manager"]
+        POLICY["dlm_lifecycle_policy.chroma_snapshot&lt;br/&gt;target_tags = Cluster, Component"]
+        EVAL["03:00 UTC daily:&lt;br/&gt;scan volumes with matching tags"]
+        SNAP["ec2:CreateSnapshot"]
+        KEEP["retain_rule.count = 7"]
+        DEL["older than 7: delete"]
+    end
+    subgraph RESTORE["Operator-driven restore"]
+        CR["CreateVolume from snapshot"]
+        PATCH["Patch PVC spec.volumeName"]
+    end
+
+    PVC -."metadata.labels".-&gt; PROV
+    PROV -.matches.-&gt; POLICY
+    POLICY --&gt; EVAL --&gt; SNAP --&gt; KEEP
+    KEEP -."older than 7d".-&gt; DEL
+    SNAP -."ec2 create".-&gt; CR --&gt; PATCH</code></pre> 
+    
+</div>
+<h5 id="step-by-step">Step-by-step<a class="headerlink" href="#step-by-step" title="Permanent link">&para;</a></h5>
+<ol>
+<li><strong>The EBS volume gets the right tags.</strong> When the chart renders
+   the Chroma PVC, the <code>persistence.labels</code> block in
+   <code>values-{env}.yaml</code> becomes labels on the PVC metadata:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># deploy/helm/support-bot/values-prod.yaml</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">persistence</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">Cluster</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">support-bot-prod</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">Component</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">chroma</span>
+</code></pre></div>
+<p>The EBS CSI driver copies PVC metadata labels onto the
+   underlying EBS volume as AWS tags. In production the cluster's
+   EBS CSI addon is configured with
+   <code>--set "settings.extra-volume-tags-from-pvc-labels=Cluster,Component"</code>
+   (this is the documented CSI driver knob for label → tag
+   propagation).</p>
+<ol>
+<li><strong>DLM selects volumes by tag.</strong> The
+   <code>aws_dlm_lifecycle_policy.chroma_snapshot</code> resource declares:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="na">policy_type</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">"EBS_SNAPSHOT_MANAGEMENT"</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="na">resource_types</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"VOLUME"</span><span class="p">]</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nb">target_tags</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="na">Cluster</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">"support-bot-${var.env}"</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="na">Component</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"chroma"</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">}</span>
+</code></pre></div>
+<p>It is <code>state = "ENABLED"</code> and uses the AWS-managed
+   <code>AWSDataLifecycleManagerDefaultRole</code> for the snapshot API
+   calls (DLM creates this role in the account on first use if
+   it's missing — verified during WP05).</p>
+<ol>
+<li>
+<p><strong>The schedule runs.</strong> At 03:00 UTC every day, DLM:</p>
+</li>
+<li>
+<p>Enumerates EBS volumes tagged <code>Cluster = support-bot-{env}</code> AND
+     <code>Component = chroma</code>.</p>
+</li>
+<li>Creates one incremental snapshot per matched volume
+     (<code>ec2:CreateSnapshot</code>).</li>
+<li>
+<p>Tags the snapshot with the volume's tags
+     (<code>copy_tags = true</code>) so restore scripts can find them later
+     via the same selector.</p>
+</li>
+<li>
+<p><strong>Retention is bounded.</strong> <code>retain_rule { count = 7 }</code> keeps the
+   7 most recent snapshots and deletes the older ones. Storage
+   cost is <code>O(1)</code> in the cluster lifetime — older snapshots are
+   pruned automatically. <strong>Restore window = 7 days.</strong></p>
+</li>
+<li>
+<p><strong>Encryption is inherited.</strong> The EBS volume was created
+   <code>encrypted = true</code> from the gp3 StorageClass, using the per-env
+   CMK (<code>kms_key_id = var.cmk_arn</code>). Snapshots inherit the same
+   KMS key — no extra wiring needed.</p>
+</li>
+</ol>
+<h5 id="restore-procedure-operator-playbook">Restore procedure (operator playbook)<a class="headerlink" href="#restore-procedure-operator-playbook" title="Permanent link">&para;</a></h5>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># 1. List snapshots for this env, newest first.</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>aws<span class="w"> </span>ec2<span class="w"> </span>describe-snapshots<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>--filters<span class="w"> </span><span class="nv">Name</span><span class="o">=</span>tag:Cluster,Values<span class="o">=</span>support-bot-prod<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">            </span><span class="nv">Name</span><span class="o">=</span>tag:Component,Values<span class="o">=</span>chroma<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span>--query<span class="w"> </span><span class="s1">'reverse(sort_by(Snapshots,&amp;StartTime))[:7].[SnapshotId,StartTime,VolumeSize,State]'</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span>--output<span class="w"> </span>table
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="c1"># 2. Pick a snapshot id, e.g. snap-0abc123...</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="nv">SNAP</span><span class="o">=</span>snap-0abc123
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="c1"># 3. Create a new volume from the snapshot in the same AZ as the chroma pod.</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>aws<span class="w"> </span>ec2<span class="w"> </span>create-volume<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">  </span>--availability-zone<span class="w"> </span>eu-central-1a<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">  </span>--snapshot-id<span class="w"> </span><span class="s2">"</span><span class="nv">$SNAP</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">  </span>--volume-type<span class="w"> </span>gp3<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">  </span>--iops<span class="w"> </span><span class="m">3000</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">  </span>--throughput<span class="w"> </span><span class="m">250</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">  </span>--encrypted<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">  </span>--tag-specifications<span class="w"> </span><span class="s1">'ResourceType=volume,Tags=[{Key=Cluster,Value=support-bot-prod},{Key=Component,Value=chroma}]'</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="c1"># 4. The new volume id (vol-xxx...) is what the EBS CSI driver</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="c1">#    binds to. Two ways to swap it in:</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="c1">#    a) In-place (recommended for non-prod): delete the PVC, then re-create.</span>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="c1">#       The StorageClass is WaitForFirstConsumer + Retain, so the old PV</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="c1">#       stays as Released; delete the PV manually after.</span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>kubectl<span class="w"> </span>delete<span class="w"> </span>pvc<span class="w"> </span>-n<span class="w"> </span>support-bot<span class="w"> </span>chroma-data
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>deploy/helm/support-bot/templates/pvc.yaml
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="c1">#    Then patch the PV's spec.awsElasticBlockStore / spec.csi source to</span>
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="c1">#    reference the new volume id.</span>
+<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a>
+<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a><span class="c1">#    b) Cluster swap (zero data loss on prod): restore into a second cluster</span>
+<a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a><span class="c1">#       first, validate, then promote.</span>
+</code></pre></div>
+<h5 id="operational-notes">Operational notes<a class="headerlink" href="#operational-notes" title="Permanent link">&para;</a></h5>
+<ul>
+<li><strong>No application-level quiescing.</strong> Chroma writes to its data
+  dir synchronously; an in-flight write at 03:00 UTC may be split
+  across two snapshots (the pre-snapshot state and the
+  post-snapshot state). Chroma recovers from this on the next
+  start (it re-builds its HNSW index from the persisted segment
+  files) — but <strong>expect a brief unavailability on the first
+  startup after a restore</strong> while the index rebuilds.</li>
+<li><strong>No cross-region copy.</strong> Snapshots live in <code>eu-central-1</code>. DR
+  across regions is a separate feature; see <code>aws-flow.md</code> for the
+  pre-OpenTofu design notes.</li>
+<li><strong>DLM is eventually consistent.</strong> A tag change on a volume takes
+  up to ~15 minutes to propagate to DLM's resource cache. Adding
+  the <code>Component=chroma</code> tag to a volume in an emergency doesn't
+  cause a snapshot to fire immediately — the next 03:00 UTC window
+  picks it up.</li>
+<li><strong>No automatic backup of the application logs / OTel
+  pipeline.</strong> Those live in CloudWatch Logs with their own
+  retention (30d application, 7d otel) and are not part of this
+  policy.</li>
+</ul>
+<h3 id="46-observability-policy-s6-inframodulesobservability">4.6 Observability &amp; Policy (<code>S6</code>) — <code>infra/modules/observability/</code><a class="headerlink" href="#46-observability-policy-s6-inframodulesobservability" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>helm_release.adot_collector</code></td>
+<td><code>aws-otel-collector</code> chart <code>0.13.0</code>, <code>mode = daemonset</code>, <code>hostNetwork = true</code>, SA annotated with the ADOT Pod-Identity ARN. Receivers: <code>otlp</code> on <code>:4317</code> (gRPC) and <code>:4318</code> (HTTP). Processors: <code>memory_limiter</code> (limit 512 MiB / spike 128 MiB) and <code>batch</code> (timeout 10s / batch 1024). Exporters: <code>awsxray</code> (region from <code>var.region</code>) and <code>awsemf</code> (<code>namespace = support-bot</code>). Service pipelines: <code>traces → memory_limiter → batch → awsxray</code>, <code>metrics → memory_limiter → batch → awsemf</code>.</td>
+</tr>
+<tr>
+<td><code>aws_cloudwatch_log_group.application</code></td>
+<td><code>/aws/eks/support-bot-{env}/application</code>, <strong>30-day retention</strong>, KMS-encrypted.</td>
+</tr>
+<tr>
+<td><code>aws_cloudwatch_log_group.otel</code></td>
+<td><code>/aws/eks/support-bot-{env}/otel</code>, <strong>7-day retention</strong>, KMS-encrypted.</td>
+</tr>
+<tr>
+<td><code>kubernetes_manifest.support_bot_namespace_labels</code></td>
+<td>Labels the <code>support-bot</code> namespace <code>pod-security.kubernetes.io/{enforce,warn,audit} = restricted</code>.</td>
+</tr>
+<tr>
+<td><code>kubernetes_manifest.support_bot_default_deny</code></td>
+<td>Namespace-wide default-deny (Ingress + Egress).</td>
+</tr>
+<tr>
+<td><code>kubernetes_manifest.support_bot_api_allow</code></td>
+<td>PodSelector <code>app = support-bot-api</code>. Ingress <code>:8000</code> from any pod in the namespace. Egress: (1) Chroma <code>:8000</code> by podSelector; (2) OpenAI <code>:443</code> to <code>0.0.0.0/0</code> excluding the three RFC1918 ranges; (3) ADOT <code>:4318</code> to <code>0.0.0.0/0</code>; (4) <code>kube-dns :53</code> (UDP + TCP) to <code>kube-system</code>; (5) EKS API <code>:443</code> to <code>0.0.0.0/0</code>.</td>
+</tr>
+<tr>
+<td><code>kubernetes_manifest.support_bot_chroma_allow</code></td>
+<td>PodSelector <code>app = support-bot-chroma</code>. Ingress <code>:8000</code> only from pods labelled <code>app = support-bot-api</code>. Egress: ADOT <code>:4318</code>, <code>kube-dns :53</code>, EKS API <code>:443</code>.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-bootstrap-main-workspace">5. Bootstrap → main workspace<a class="headerlink" href="#5-bootstrap-main-workspace" title="Permanent link">&para;</a></h2>
+<div class="panzoom-box" data-key="alt" id="panzoom0" oncontextmenu="return false;">
+    <div class="panzoom-info-box panzoom-info-box-top">
+Hold "Alt" / "Option" to enable pan &amp; zoom
+</div>
+    <nav class="panzoom-nav panzoom-top-nav panzoom-nav-infobox-top">
+    <button class="panzoom-reset panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M125.7 160l50.3 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L48 224c-17.7 0-32-14.3-32-32L16 64c0-17.7 14.3-32 32-32s32 14.3 32 32l0 51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"></path>
+    </svg>
+</button><button class="panzoom-max panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z"></path>
+    </svg>
+</button><button class="panzoom-min panzoom-button panzoom-hidden">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z"></path>
+    </svg>
+</button>
+    </nav>
+    <pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    participant OP as Operator
+    participant BS as infra/bootstrap
+    participant AWS as AWS
+    participant MAIN as infra/ (main)
+
+    OP-&gt;&gt;BS: cd infra/bootstrap &amp;&amp; tofu init
+    OP-&gt;&gt;BS: tofu apply
+    BS-&gt;&gt;AWS: aws_kms_key.bootstrap (alias/support-bot-bootstrap-cmk)
+    BS-&gt;&gt;AWS: aws_s3_bucket.tfstate (KMS-encrypted, versioning, public-block)
+    BS-&gt;&gt;AWS: aws_dynamodb_table.tfstate_lock (LockID hash key)
+    BS--&gt;&gt;OP: tfstate_bucket_name, tfstate_lock_table_name, tfstate_kms_key_arn
+
+    OP-&gt;&gt;MAIN: cd infra &amp;&amp; tofu init -backend-config=...
+    OP-&gt;&gt;MAIN: tofu apply -var-file=envs/dev.tfvars
+    MAIN-&gt;&gt;AWS: foundation -&gt; cluster -&gt; identity -&gt; edge -&gt; storage -&gt; observability
+    MAIN--&gt;&gt;OP: cluster endpoint, ALB DNS, ECR repo URL, OIDC provider ARN, ...</code></pre> 
+    
+</div>
+<p>The bootstrap workspace uses <strong>local state</strong> (it creates the remote
+backend, so it can't use the remote backend). Back up
+<code>infra/bootstrap/terraform.tfstate</code> off-box.</p>
+<hr />
+<h2 id="6-apply-destroy-lifecycle-per-environment">6. Apply / destroy lifecycle per environment<a class="headerlink" href="#6-apply-destroy-lifecycle-per-environment" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># dev</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">cd</span><span class="w"> </span>infra
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>tofu<span class="w"> </span>apply<span class="w"> </span>-var-file<span class="o">=</span>envs/dev.tfvars
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># requires: TF_VAR_openai_api_key=sk-...</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># optional: TF_VAR_chroma_auth_token=...</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># prod — same flow with prod.tfvars</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>tofu<span class="w"> </span>apply<span class="w"> </span>-var-file<span class="o">=</span>envs/prod.tfvars
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># destroy — dev only without explicit approval</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>tofu<span class="w"> </span>destroy<span class="w"> </span>-var-file<span class="o">=</span>envs/dev.tfvars
+</code></pre></div>
+<p><code>lifecycle.prevent_destroy = true</code> is set on:</p>
+<ul>
+<li><code>aws_s3_bucket.tfstate</code>, <code>aws_dynamodb_table.tfstate_lock</code>,
+  <code>aws_kms_key.bootstrap</code> (bootstrap workspace),</li>
+<li><code>aws_s3_bucket.alb_access_logs</code> (edge module),</li>
+<li><code>aws_secretsmanager_secret.openai</code>, <code>aws_secretsmanager_secret.chroma</code> (identity module),</li>
+<li><code>aws_ecr_repository.support_bot_api</code> (storage module).</li>
+</ul>
+<p><code>tofu destroy</code> against these resources fails with a clear error —
+that is the desired behaviour for production data.</p>
+<p>The <code>cluster</code> module has a <code>test_mode</code> flag that disables
+<code>helm_release.karpenter</code> and the ECR auth-token data source so
+<code>tofu test</code> runs offline. Operator-credentialed applies always set
+<code>test_mode = false</code> (or override it in a wrapper).</p>
+<hr />
+<h2 id="7-secrets-chain-end-to-end">7. Secrets chain (end-to-end)<a class="headerlink" href="#7-secrets-chain-end-to-end" title="Permanent link">&para;</a></h2>
+<div class="panzoom-box" data-key="alt" id="panzoom0" oncontextmenu="return false;">
+    <div class="panzoom-info-box panzoom-info-box-top">
+Hold "Alt" / "Option" to enable pan &amp; zoom
+</div>
+    <nav class="panzoom-nav panzoom-top-nav panzoom-nav-infobox-top">
+    <button class="panzoom-reset panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M125.7 160l50.3 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L48 224c-17.7 0-32-14.3-32-32L16 64c0-17.7 14.3-32 32-32s32 14.3 32 32l0 51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"></path>
+    </svg>
+</button><button class="panzoom-max panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z"></path>
+    </svg>
+</button><button class="panzoom-min panzoom-button panzoom-hidden">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z"></path>
+    </svg>
+</button>
+    </nav>
+    <pre class="mermaid"><code>flowchart LR
+    OP(["Operator&lt;br/&gt;TF_VAR_openai_api_key=sk-..."]) --&gt;|"apply time"| SM["Secrets Manager&lt;br/&gt;support-bot/&amp;#123;env&amp;#125;/openai-api-key&lt;br/&gt;KMS-encrypted&lt;br/&gt;prevent_destroy"]
+    SM --&gt;|"GetSecretValue&lt;br/&gt;via Pod Identity&lt;br/&gt;refreshInterval 1m"| ESO["External Secrets&lt;br/&gt;Operator"]
+    ESO --&gt;|mirrors| KS["Kubernetes Secret&lt;br/&gt;support-bot/openai-api-key"]
+    KS --&gt;|"env var"| API["API Deployment"]
+    KS --&gt;|"env var"| ING["Ingestion Job"]
+    API --&gt;|"HTTPS bearer auth"| OPENAI(["api.openai.com"])</code></pre> 
+    
+</div>
+<p>Why this shape:</p>
+<ul>
+<li>The key <strong>never</strong> appears in HCL, in <code>helm template</code> output, in
+  Terraform state (the state bucket is KMS-encrypted with the
+  bootstrap CMK), or in CloudWatch logs.</li>
+<li>Rotation is <code>aws secretsmanager update-secret</code>; ESO picks up the
+  new value within <code>refreshInterval</code> (default 1m). No pod restart
+  is required unless <code>refreshInterval</code> exceeds the pod's lifetime
+  — operator can <code>kubectl rollout restart deploy/support-bot-api</code> to
+  force a refresh.</li>
+<li>The chroma auth token follows the same path when
+  <code>var.chroma_auth_token != null</code> (its secret is created with
+  <code>count = var.chroma_auth_token != null ? 1 : 0</code>).</li>
+</ul>
+<hr />
+<h2 id="8-observability-wiring-request_id-x-ray-cloudwatch">8. Observability wiring (request_id → X-Ray + CloudWatch)<a class="headerlink" href="#8-observability-wiring-request_id-x-ray-cloudwatch" title="Permanent link">&para;</a></h2>
+<div class="panzoom-box" data-key="alt" id="panzoom0" oncontextmenu="return false;">
+    <div class="panzoom-info-box panzoom-info-box-top">
+Hold "Alt" / "Option" to enable pan &amp; zoom
+</div>
+    <nav class="panzoom-nav panzoom-top-nav panzoom-nav-infobox-top">
+    <button class="panzoom-reset panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M125.7 160l50.3 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L48 224c-17.7 0-32-14.3-32-32L16 64c0-17.7 14.3-32 32-32s32 14.3 32 32l0 51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"></path>
+    </svg>
+</button><button class="panzoom-max panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z"></path>
+    </svg>
+</button><button class="panzoom-min panzoom-button panzoom-hidden">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z"></path>
+    </svg>
+</button>
+    </nav>
+    <pre class="mermaid"><code>sequenceDiagram
+    participant U as User
+    participant ALB as Internal ALB
+    participant API as API Pod
+    participant ADOT as ADOT Collector (host)
+    participant XRAY as AWS X-Ray
+    participant EMF as CloudWatch EMF
+    participant CWL as CloudWatch Logs
+
+    U-&gt;&gt;ALB: POST /ask
+    ALB-&gt;&gt;API: forward
+    Note over API: RequestIdMiddleware binds&lt;br/&gt;request_id + sets OTel span attr
+    API-&gt;&gt;API: span answering_service.answer&lt;br/&gt;+ adapter.*.embed / retrieve / answer
+    API-&gt;&gt;ADOT: OTLP/HTTP :4318 (or gRPC :4317)
+    ADOT-&gt;&gt;XRAY: PutTraceSegments
+    ADOT-&gt;&gt;EMF: PutTelemetryRecords (metrics namespace=support-bot)
+    API-&gt;&gt;CWL: stdout JSON (request_id, trace_id, span_id, route, status_code, latency_ms)
+    ADOT-&gt;&gt;CWL: stdout JSON (collector logs)</code></pre> 
+    
+</div>
+<p>Key guarantees from <code>AGENTS.md §6</code>:</p>
+<ul>
+<li><code>request.id</code> is set on every OTel span and inherited by every
+  auto-instrumented child.</li>
+<li><code>request_id</code> appears in every structlog line emitted in the
+  request scope.</li>
+<li>No raw question / answer text in span names or attributes —
+  <code>sha256(text).hexdigest[:16]</code> only (<code>question.text_hash</code>,
+  <code>answer.text_hash</code>).</li>
+<li><code>SecretScrubber</code> is a <code>structlog</code> processor, an
+  <code>ErrorResponseMapper</code> step, and an OTel attribute filter —
+  <code>sk-…</code> and <code>sk-ant-…</code> patterns are replaced with <code>[REDACTED]</code>
+  before persistence.</li>
+</ul>
+<p>See <a href="../observability/"><code>observability.md</code></a> for the operator
+playbook (how to grep by <code>request_id</code>, how to use <code>*_text_hash</code> to
+debug without seeing raw text, etc.).</p>
+<hr />
+<h2 id="9-network-policy-posture">9. Network policy posture<a class="headerlink" href="#9-network-policy-posture" title="Permanent link">&para;</a></h2>
+<p>The <code>support-bot</code> namespace ships with three NetworkPolicies; the
+default-deny makes everything else closed by default.</p>
+<div class="panzoom-box" data-key="alt" id="panzoom0" oncontextmenu="return false;">
+    <div class="panzoom-info-box panzoom-info-box-top">
+Hold "Alt" / "Option" to enable pan &amp; zoom
+</div>
+    <nav class="panzoom-nav panzoom-top-nav panzoom-nav-infobox-top">
+    <button class="panzoom-reset panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M125.7 160l50.3 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L48 224c-17.7 0-32-14.3-32-32L16 64c0-17.7 14.3-32 32-32s32 14.3 32 32l0 51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"></path>
+    </svg>
+</button><button class="panzoom-max panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z"></path>
+    </svg>
+</button><button class="panzoom-min panzoom-button panzoom-hidden">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z"></path>
+    </svg>
+</button>
+    </nav>
+    <pre class="mermaid"><code>flowchart TB
+    NS["support-bot namespace&lt;br/&gt;(PodSecurityStandards: restricted)"]
+    DP["default-deny&lt;br/&gt;(Ingress + Egress)"]
+    API_P["api-allow&lt;br/&gt;selector: app=support-bot-api"]
+    CHR_P["chroma-allow&lt;br/&gt;selector: app=support-bot-chroma"]
+    API["support-bot-api Pod"]
+    CHR["support-bot-chroma Pod"]
+    OAI(["OpenAI :443"])
+    ADOT(["ADOT :4318"])
+    DNS(["kube-dns :53"])
+    EKSAPI(["EKS API :443"])
+
+    NS --&gt; DP
+    NS --&gt; API_P
+    NS --&gt; CHR_P
+    API_P -.allows.-&gt; API
+    CHR_P -.allows.-&gt; CHR
+    API -.egress.-&gt; CHR
+    API -.egress.-&gt; OAI
+    API -.egress.-&gt; ADOT
+    API -.egress.-&gt; DNS
+    API -.egress.-&gt; EKSAPI
+    CHR -.egress.-&gt; ADOT
+    CHR -.egress.-&gt; DNS
+    CHR -.egress.-&gt; EKSAPI</code></pre> 
+    
+</div>
+<p>Note that ADOT's hostNetwork is <strong>not</strong> affected — <code>NetworkPolicy</code>
+operates on the pod network namespace. ADOT reaches
+<code>hostNetwork :4317/4318</code> and exports out via the node's default
+route.</p>
+<hr />
+<h2 id="10-why-the-chart-is-not-installed-by-opentofu">10. Why the chart is <em>not</em> installed by OpenTofu<a class="headerlink" href="#10-why-the-chart-is-not-installed-by-opentofu" title="Permanent link">&para;</a></h2>
+<p>Three reasons:</p>
+<ol>
+<li><strong>OCI / public-ECR auth.</strong> The chart consumes the
+   <code>support-bot-api-{env}</code> ECR repository, which needs the
+   GitHub Actions OIDC role to push and the EKS Pod Identity agent
+   to pull. Doing this from OpenTofu means storing the ECR login
+   in the OpenTofu process — exactly the secret-leak surface the
+   stack is designed to avoid.</li>
+<li><strong>Helm release drift vs Terraform state.</strong> Helm has its own
+   release history; reconciling it through <code>helm_release</code> works
+   for stateless workloads but is fragile for the <code>post-install</code>
+   ingestion Job (Helm will re-run it on every refresh).</li>
+<li><strong>GitOps-shaped deploys.</strong> The intended deployment vehicle is a
+   downstream CI/CD workflow (<code>kubectl apply</code> from GitHub Actions,
+   or Argo CD). Keeping OpenTofu out of the chart lifecycle means
+   either can replace the other without churning infra.</li>
+</ol>
+<p>The chart <em>itself</em> is <strong>additive-only</strong> — see
+<a href="../../c4/4-deep-dive-deployment/"><code>c4/4-deep-dive-deployment.md</code></a>
+for the boundary.</p>
+<hr />
+<h2 id="11-ci-secret-scan-lint">11. CI / secret-scan / lint<a class="headerlink" href="#11-ci-secret-scan-lint" title="Permanent link">&para;</a></h2>
+<p><code>.github/workflows/infra-ci.yml</code> runs on every PR:</p>
+<ul>
+<li><code>tofu fmt -check -recursive infra/</code></li>
+<li><code>tofu validate</code> on bootstrap and every module</li>
+<li><code>tflint -f compact infra/</code></li>
+<li><code>tofu test</code> on every module (uses the per-module <code>test_mode</code>
+  flag where needed)</li>
+<li><code>helm lint deploy/helm/support-bot</code></li>
+<li><code>helm template deploy/helm/support-bot</code> + <code>grep -E
+  'sk-[A-Za-z0-9]{32,}'</code> — the secret-scan guard from
+  AGENTS.md §7.1.</li>
+</ul>
+<p>A failure in any of these fails the PR check.</p>
+<hr />
+<h2 id="12-operator-playbook">12. Operator playbook<a class="headerlink" href="#12-operator-playbook" title="Permanent link">&para;</a></h2>
+<h3 id="i-cant-reach-the-eks-api">"I can't reach the EKS API"<a class="headerlink" href="#i-cant-reach-the-eks-api" title="Permanent link">&para;</a></h3>
+<p><code>endpoint_public_access = true</code> is restricted to <code>var.admin_cidr</code>.
+Update the tfvar and <code>tofu apply</code> (the <code>aws_eks_cluster.main</code>
+update is in-place; no resource replacement).</p>
+<h3 id="pods-cant-reach-apiopenaicom">"Pods can't reach <code>api.openai.com</code>"<a class="headerlink" href="#pods-cant-reach-apiopenaicom" title="Permanent link">&para;</a></h3>
+<p>Two possible causes:</p>
+<ol>
+<li>NAT gateway count is <code>0</code> (dev runs <code>nat_gateway_count = 1</code> by
+   default). Check the route table — the private subnets must have a
+   <code>0.0.0.0/0 → nat-…</code> route.</li>
+<li>The <code>api-allow</code> NetworkPolicy is missing the egress rule. It is
+   generated from <code>modules/observability/main.tf</code>; verify with
+   <code>kubectl get networkpolicy api-allow -n support-bot -o yaml</code>.</li>
+</ol>
+<h3 id="x-ray-is-empty-but-logs-are-flowing">"X-Ray is empty but logs are flowing"<a class="headerlink" href="#x-ray-is-empty-but-logs-are-flowing" title="Permanent link">&para;</a></h3>
+<p>Check that:</p>
+<ul>
+<li><code>var.adot_role_arn</code> is wired in <code>root.tf</code> (it comes from
+  <code>module.identity.adot_role_arn</code>).</li>
+<li>The ADOT service account has the Pod-Identity annotation matching
+  the role.</li>
+<li>The IAM role's trust policy has
+  <code>aws:RequestTag/cluster = support-bot-{env}</code> — if you applied
+  with the wrong env, the tag check fails and ADOT can't assume.</li>
+</ul>
+<h3 id="the-ecr-push-is-denied">"The ECR push is denied"<a class="headerlink" href="#the-ecr-push-is-denied" title="Permanent link">&para;</a></h3>
+<p><code>aws_ecr_repository_policy.support_bot_api</code> allows pushes only from
+<code>var.github_actions_role_arn</code>. If you created the role with a
+different <code>domain_suffix</code>, the OIDC sub claim
+(<code>repo:*/{domain_suffix}:ref:refs/heads/main</code>) won't match and the
+push will be rejected with <code>denied: not authorized to perform
+ecr:PutImage</code>.</p>
+<h3 id="state-lock-is-stuck">"State lock is stuck"<a class="headerlink" href="#state-lock-is-stuck" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>aws<span class="w"> </span>dynamodb<span class="w"> </span>scan<span class="w"> </span>--table-name<span class="w"> </span>support-bot-tfstate-lock
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>tofu<span class="w"> </span>force-unlock<span class="w"> </span>&lt;lock-id-from-DynamoDB&gt;
+</code></pre></div>
+<p>The lock table is at <code>aws_dynamodb_table.tfstate_lock</code> in the
+bootstrap workspace.</p>
+<h3 id="openai-key-rotation">"OpenAI key rotation"<a class="headerlink" href="#openai-key-rotation" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>aws<span class="w"> </span>secretsmanager<span class="w"> </span>update-secret<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>--secret-id<span class="w"> </span>support-bot/<span class="o">{</span>env<span class="o">}</span>/openai-api-key<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span>--secret-string<span class="w"> </span><span class="s1">'sk-...'</span>
+</code></pre></div>
+<p>ESO picks up the new value within <code>refreshInterval</code> (default 1m).
+No pod restart needed unless the pod predates the rotation window.</p>
+<hr />
+<h2 id="appendix-a-resource-count-rough-per-env">Appendix A — Resource count (rough, per env)<a class="headerlink" href="#appendix-a-resource-count-rough-per-env" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Resources (approx.)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bootstrap/</code></td>
+<td>7 (S3, DynamoDB, KMS, alias, IAM policy, …)</td>
+</tr>
+<tr>
+<td><code>foundation/</code></td>
+<td>6 subnets × 2 + 2 IGW + 3 NGW + 8 endpoints + SGs + RTs = ~30</td>
+</tr>
+<tr>
+<td><code>cluster/</code></td>
+<td>EKS, OIDC, 2 addons, MNG, 2 SGs, 3 IAM roles, 1 helm = ~15</td>
+</tr>
+<tr>
+<td><code>identity/</code></td>
+<td>1 KMS, 2 secrets, 2 secret versions, 4 IAM roles + 4 policies, 2 OIDC providers = ~17</td>
+</tr>
+<tr>
+<td><code>edge/</code></td>
+<td>1 cert, validation, WAF, ~4 S3 resources, 1 helm, 1 ingress, 1 namespace = ~10</td>
+</tr>
+<tr>
+<td><code>storage/</code></td>
+<td>1 SC, 1 ECR, 1 ECR policy, 1 DLM = 4</td>
+</tr>
+<tr>
+<td><code>observability/</code></td>
+<td>1 helm, 2 log groups, 1 namespace, 3 network policies = 7</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>~90 resources per env</strong></td>
+</tr>
+</tbody>
+</table>
+<p>This number is intentionally bounded — every module is designed so
+that adding one more application would add ~3 resources (Ingress +
+ServiceAccount + IAM role), not grow this base.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../local-flow/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Local Infrastructure">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Local Infrastructure
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../observability/" class="md-footer__link md-footer__link--next" aria-label="Next: Observability">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Observability
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "search.share", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@11/dist/mermaid.min.js"></script>
+      
+        <script src="../../js/mermaid-init.js"></script>
+      
+        <script src="../../assets/javascripts/panzoom.min.js"></script>
+      
+        <script src="../../assets/javascripts/zoompan.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,2576 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Customer-support RAG agent — public documentation">
+      
+      
+      
+        <link rel="canonical" href="https://bruj0.github.io/support-agent/">
+      
+      
+      
+        <link rel="next" href="c4/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>support-agent Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/panzoom.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <meta name="panzoom-theme" content="material">
+<meta name="panzoom-data" content='{"selectors": [".d2", ".mermaid"], "initial_zoom_level": 1.0}'> </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#support-bot" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="support-agent Docs" class="md-header__button md-logo" aria-label="support-agent Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5 2.5 2.5 0 0 0 7.5 18a2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 7.5 13m9 0a2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5 2.5 2.5 0 0 0-2.5-2.5"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            support-agent Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/bruj0/support-agent" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bruj0/support-agent
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="support-agent Docs" class="md-nav__button md-logo" aria-label="support-agent Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5 2.5 2.5 0 0 0 7.5 18a2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 7.5 13m9 0a2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5 2.5 2.5 0 0 0-2.5-2.5"/></svg>
+
+    </a>
+    support-agent Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/bruj0/support-agent" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bruj0/support-agent
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-it-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What it does
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suggested-reading-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested reading order
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core capabilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-langgraph-workflow-in-depth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The LangGraph workflow, in depth
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codebase-quality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Codebase quality
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-run-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to run it
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-how-to-run-locally-with-docker-compose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. How to run locally with Docker Compose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-test-the-service-end-to-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1. Test the service end-to-end
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.1. Test the service end-to-end">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#111-confirm-the-api-is-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.1. Confirm the API is up
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#112-run-the-ingestion-job" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.2. Run the ingestion Job
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#113-ask-a-question" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.3. Ask a question
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#114-smoke-all-7-dutch-ziggo-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.4. Smoke all 7 Dutch Ziggo questions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#115-verify-the-refusal-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.5. Verify the refusal path
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#116-check-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.6. Check metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#117-tail-logs-filtered-by-request_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.7. Tail logs filtered by request_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#118-negative-path-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.8. Negative-path checks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-models-libraries-and-vector-store-rationale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Models, libraries, and vector store rationale
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-langgraph-workflow-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. LangGraph workflow design
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-aws-view-production-target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. AWS view (production target)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#production-deployment-helm-chart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Production deployment (Helm chart)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Production deployment (Helm chart)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#production-install" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Production install
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scaling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#secrets-rotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secrets rotation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pvc-retention-across-reinstalls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PVC retention across reinstalls
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ci-github-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CI / GitHub Actions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        License
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="c4/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture (C4)
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture (C4)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="c4/1-system-context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. System Context
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="c4/2-containers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="c4/3-components/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3. Components
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deep Dives
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Deep Dives
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="c4/4-deep-dive-ingestion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ingestion pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="c4/4-deep-dive-answering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Answering workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="c4/4-deep-dive-observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability (one request_id)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="c4/4-deep-dive-deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment (Helm chart)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="architecture/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="architecture/local-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Infrastructure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="architecture/aws-flow-v2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS Infrastructure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="architecture/observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-it-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What it does
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suggested-reading-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested reading order
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core capabilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-langgraph-workflow-in-depth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The LangGraph workflow, in depth
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codebase-quality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Codebase quality
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-run-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to run it
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-how-to-run-locally-with-docker-compose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. How to run locally with Docker Compose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-test-the-service-end-to-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1. Test the service end-to-end
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.1. Test the service end-to-end">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#111-confirm-the-api-is-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.1. Confirm the API is up
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#112-run-the-ingestion-job" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.2. Run the ingestion Job
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#113-ask-a-question" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.3. Ask a question
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#114-smoke-all-7-dutch-ziggo-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.4. Smoke all 7 Dutch Ziggo questions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#115-verify-the-refusal-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.5. Verify the refusal path
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#116-check-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.6. Check metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#117-tail-logs-filtered-by-request_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.7. Tail logs filtered by request_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#118-negative-path-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1.8. Negative-path checks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-models-libraries-and-vector-store-rationale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Models, libraries, and vector store rationale
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-langgraph-workflow-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. LangGraph workflow design
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-aws-view-production-target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. AWS view (production target)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#production-deployment-helm-chart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Production deployment (Helm chart)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Production deployment (Helm chart)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#production-install" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Production install
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scaling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#secrets-rotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secrets rotation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pvc-retention-across-reinstalls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PVC retention across reinstalls
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ci-github-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CI / GitHub Actions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        License
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="support-bot">support-bot<a class="headerlink" href="#support-bot" title="Permanent link">&para;</a></h1>
+<p>A small customer-support <strong>RAG (Retrieval-Augmented Generation) agent</strong>
+that answers questions about a single web page in <strong>Dutch</strong> (or any
+language matching the source). The current production target is
+<a href="https://www.ziggo.nl/internet"><code>https://www.ziggo.nl/internet</code></a>; the
+source URL is operator-configurable.</p>
+<p>You give it a URL. It scrapes, cleans, semantically analyzes, and
+embeds the page into a vector store. Users ask questions over HTTP;
+the agent retrieves the most relevant chunks, asks an LLM to
+<strong>answer strictly from those chunks</strong>, and returns the answer with a
+confidence flag. When the retrieved context is too thin to ground a
+reply, the agent refuses with a fixed message — it never invents
+prices, URLs, or details.</p>
+<blockquote>
+<p><strong>Full documentation site (C4 diagrams + deep dives + walkthroughs):</strong>
+<strong><a href="https://bruj0.github.io/support-agent/">https://bruj0.github.io/support-agent/</a></strong>
+This README is the quick-start + at-a-glance; the docs site is the
+authoritative reference for the architecture, observability contract,
+deployment topology, and design rationale.</p>
+</blockquote>
+<hr />
+<h2 id="what-it-does">What it does<a class="headerlink" href="#what-it-does" title="Permanent link">&para;</a></h2>
+<div class="panzoom-box" data-key="alt" id="panzoom0" oncontextmenu="return false;">
+    <div class="panzoom-info-box panzoom-info-box-top">
+Hold "Alt" / "Option" to enable pan &amp; zoom
+</div>
+    <nav class="panzoom-nav panzoom-top-nav panzoom-nav-infobox-top">
+    <button class="panzoom-reset panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M125.7 160l50.3 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L48 224c-17.7 0-32-14.3-32-32L16 64c0-17.7 14.3-32 32-32s32 14.3 32 32l0 51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"></path>
+    </svg>
+</button><button class="panzoom-max panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z"></path>
+    </svg>
+</button><button class="panzoom-min panzoom-button panzoom-hidden">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z"></path>
+    </svg>
+</button>
+    </nav>
+    <pre class="mermaid"><code>flowchart LR
+    SRC([Source page&lt;br/&gt;e.g. ziggo.nl/internet]) --&gt; ING[Ingestion Job&lt;br/&gt;one-shot CLI]
+    ING --&gt; CHR[(Chroma&lt;br/&gt;vector store)]
+    USR([User question&lt;br/&gt;Dutch]) --&gt; API[POST /ask]
+    API --&gt; LG[LangGraph workflow&lt;br/&gt;retrieve → guard → generate]
+    LG --&gt; CHR
+    LG --&gt; ANS([Answer + confidence])</code></pre> 
+    
+</div>
+<ol>
+<li><strong>Ingest</strong> the source page once (scrape → clean → LLM-analyze into
+   semantic regions → chunk → embed → store in Chroma).</li>
+<li><strong>Retrieve</strong> the top-k most similar chunks for each user question
+   using OpenAI embeddings; re-rank with a lexical overlap scorer so
+   Dutch verb-form variants surface in the top-k.</li>
+<li><strong>Guard</strong> the retrieval: if the top-1 score is below threshold,
+   the agent refuses with the fixed string <code>"I cannot answer based
+   on the available content."</code></li>
+<li><strong>Generate</strong> the answer with <code>gpt-4o-mini</code>, constrained to the
+   retrieved context.</li>
+<li><strong>Respond</strong> with <code>{answer, confidence, trace, top_similarity, request_id}</code>.</li>
+</ol>
+<hr />
+<h2 id="suggested-reading-order">Suggested reading order<a class="headerlink" href="#suggested-reading-order" title="Permanent link">&para;</a></h2>
+<p>If you're reviewing this repo, here's the path that traces
+a feature from "what the user sees" all the way back to
+"why it was built that way":</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Doc</th>
+<th>What's in it</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>README.md</code> (this file)</td>
+<td>How it works at a glance, how to run it, how to test it, the features, the LangGraph design in 30 seconds.</td>
+<td>10 min skim</td>
+</tr>
+<tr>
+<td>2</td>
+<td><a href="https://github.com/bruj0/support-agent/blob/main/AGENTS.md"><code>AGENTS.md</code></a></td>
+<td>Cross-cutting rules: hexagonal layering, TDD, observability, security, error mapping, coverage thresholds, the 23-rule cheat-sheet.</td>
+<td>10 min</td>
+</tr>
+<tr>
+<td>3</td>
+<td><a href="https://github.com/bruj0/support-agent/blob/main/CONTEXT.md"><code>CONTEXT.md</code></a></td>
+<td>Glossary: <code>SourcePage</code>, <code>Chunk</code>, <code>RetrievedChunk</code>, <code>Question</code>, <code>Answer</code>, <code>AgentState</code>, <code>Port</code>, <code>Adapter</code>, <code>CompositionRoot</code>, <code>LangGraphWorkflow</code>, <code>LowConfidencePolicy</code>, <code>SecretScrubber</code>, <code>CleanedPage</code>.</td>
+<td>5 min</td>
+</tr>
+<tr>
+<td>4</td>
+<td><a href="architecture/architecture/"><code>architecture/architecture.md</code></a></td>
+<td>The guided tour of the source tree: hexagonal layers end-to-end, a <code>POST /ask</code> trace, a <code>POST /ask</code> failure-injection matrix, a <code>Run ingestion Job</code> walkthrough, why each subsystem boundary was drawn where it is.</td>
+<td>30 min</td>
+</tr>
+<tr>
+<td>5</td>
+<td><a href="architecture/local-flow/"><code>architecture/local-flow.md</code></a></td>
+<td>The local flow diagram + 9-step ask walkthrough + 9-step ingestion walkthrough + shared infrastructure section.</td>
+<td>10 min</td>
+</tr>
+<tr>
+<td>6</td>
+<td><a href="architecture/aws-flow/"><code>architecture/aws-flow.md</code></a></td>
+<td>The AWS production diagram + scaling table + security table + failure-mode recovery table.</td>
+<td>10 min</td>
+</tr>
+<tr>
+<td>7</td>
+<td><a href="https://github.com/bruj0/support-agent/blob/main/specs/001-customer-support-rag-agent/spec.md"><code>spec.md</code></a></td>
+<td>The original functional + non-functional requirements. The "why" for every feature.</td>
+<td>15 min</td>
+</tr>
+<tr>
+<td>8</td>
+<td><a href="https://github.com/bruj0/support-agent/blob/main/specs/001-customer-support-rag-agent/plan.md"><code>plan.md</code></a></td>
+<td>Architecture decisions, phasing, trade-offs at a higher level than <code>architecture.md</code>.</td>
+<td>20 min</td>
+</tr>
+<tr>
+<td>9</td>
+<td><a href="https://github.com/bruj0/support-agent/blob/main/specs/001-customer-support-rag-agent/decomposition.md"><code>decomposition.md</code></a></td>
+<td>Subsystem boundaries derived via Alexander's misfit analysis — the rationale for splitting <code>S1 Ingestion Pipeline</code> from <code>S2 Retrieval &amp; Answering</code> from <code>S3 API &amp; Cross-Cutting Safety</code> from <code>S4 Helm Packaging &amp; CI</code>.</td>
+<td>15 min</td>
+</tr>
+<tr>
+<td>10</td>
+<td><a href="https://github.com/bruj0/support-agent/tree/main/specs/001-customer-support-rag-agent/tasks"><code>tasks/</code></a></td>
+<td>Per-WP prompts + <code>implement-summary.json</code> + <code>review-summary-{v1,v2}.json</code> — the audit trail of "what landed in WP0N, what the reviewer said, what changed between review v1 and v2".</td>
+<td>30 min</td>
+</tr>
+</tbody>
+</table>
+<p><strong>How to trace a design decision:</strong></p>
+<blockquote>
+<p>"Why is the page chunked semantically instead of every
+500 chars?"
+→ <code>spec.md</code> (requirement: "chunk by section heading or FAQ
+Q/A pair"). → <code>plan.md</code> (phased under WP06). →
+<code>tasks/WP06-semantic-analyzer.md</code> (the prompt that drove
+the WP). → <code>tasks/WP06-implement-summary.json</code>
+(<code>prose</code> field, 5-paragraph narrative). →
+<code>architecture.md</code> §6.1.1 (the code-level walkthrough). →
+<code>adapters/hybrid_chunker.py</code> (the implementation).</p>
+</blockquote>
+<p>The same trail works for any design choice: the
+spec-bridge artefacts under <code>specs/</code> are kept in-tree so a
+reviewer can follow the chain.</p>
+<hr />
+<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
+<h3 id="core-capabilities">Core capabilities<a class="headerlink" href="#core-capabilities" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Single-source ingestion Job</strong> — CLI container that fetches one
+  source URL, runs the full pipeline, and exits with a JSON status
+  line. Re-runnable; chunk IDs are stable (SHA-1 of <code>url:ordinal</code>),
+  so upserts are idempotent.</li>
+<li><strong>Semantic chunking (WP06)</strong> — an LLM analyzer (<code>gpt-4o-mini</code>
+  structured outputs) detects FAQ Q/A pairs and section boundaries,
+  so each FAQ lands as one chunk instead of being split mid-sentence
+  by a fixed-size window.</li>
+<li><strong>Hybrid chunker</strong> — one chunk per FAQ Q/A pair, one chunk per
+  other region (heading + body / list / paragraph / table), with
+  sentence-boundary splitting for oversized regions.</li>
+<li><strong>LangGraph workflow</strong> — explicit 4-node <code>StateGraph</code>
+  (<code>retrieve → guard → [generate | refuse]</code>) with a Pydantic
+  <code>AgentState</code>. The conditional edge delegates to an injected
+  <code>LowConfidencePolicy</code> so refusal logic is swappable.</li>
+<li><strong>Dutch-aware retrieval</strong> — <code>LexicalRerankRetriever</code> blends vector
+  similarity with a 4-char stem-prefix token-overlap score, so
+  questions like <em>"Hoe kan ik mijn Ziggo internet instellen?"</em> still
+  retrieve the chunk <em>"Hoe installeer ik Ziggo Internet?"</em> even when
+  the embedder mis-ranks Dutch verb-form variants.</li>
+<li><strong>Refusal guarantee</strong> — when the top-1 score is below threshold
+  (default <code>0.5</code>), the agent returns the fixed string
+  <code>"I cannot answer based on the available content."</code> It cannot
+  hallucinate past retrieval evidence.</li>
+<li><strong>Configurable providers</strong> — <code>EMBEDDER_BACKEND=local|openai</code>,
+  <code>ANSWERER_BACKEND=openai|fake</code>. Embedder model is operator-tunable
+  via <code>EMBEDDING_MODEL_NAME</code> and <code>EMBEDDING_DIMENSIONS</code> (Matryoshka
+  truncation).</li>
+</ul>
+<h3 id="the-langgraph-workflow-in-depth">The LangGraph workflow, in depth<a class="headerlink" href="#the-langgraph-workflow-in-depth" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>Skip to</strong> <a href="#3-langgraph-workflow-design">§ 3. LangGraph workflow design</a>
+for the 30-second topology view. This section is the full
+explanation: state shape, node bodies, the guard edge, and
+how every step is observed.</p>
+</blockquote>
+<div class="panzoom-box" data-key="alt" id="panzoom0" oncontextmenu="return false;">
+    <div class="panzoom-info-box panzoom-info-box-top">
+Hold "Alt" / "Option" to enable pan &amp; zoom
+</div>
+    <nav class="panzoom-nav panzoom-top-nav panzoom-nav-infobox-top">
+    <button class="panzoom-reset panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M125.7 160l50.3 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L48 224c-17.7 0-32-14.3-32-32L16 64c0-17.7 14.3-32 32-32s32 14.3 32 32l0 51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"></path>
+    </svg>
+</button><button class="panzoom-max panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z"></path>
+    </svg>
+</button><button class="panzoom-min panzoom-button panzoom-hidden">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z"></path>
+    </svg>
+</button>
+    </nav>
+    <pre class="mermaid"><code>flowchart TD
+    subgraph API ["FastAPI: POST /ask"]
+        MW[RequestIdMiddleware&lt;br/&gt;binds request_id to&lt;br/&gt;structlog + OTel span]
+        USE[AskQuestionUseCase.execute&lt;br/&gt;question, request_id]
+    end
+
+    subgraph GRAPH ["LangGraph StateGraph (compiled once at startup)"]
+        START((START)) --&gt; RET[retrieve node]
+        RET --&gt; GUARD[guard node&lt;br/&gt;only updates trace]
+        GUARD --&gt; EDGE{{_decide&lt;br/&gt;LowConfidencePolicy}}
+        EDGE --&gt;|"generate"| GEN[generate node]
+        EDGE --&gt;|"refuse"| REF[refuse node]
+        EDGE --&gt;|"__end__"| END0((END))
+        GEN --&gt; END1((END))
+        REF --&gt; END2((END))
+    end
+
+    subgraph PORTS ["Ports (injected)"]
+        RETR[Retriever]
+        GEN2[AnswerGenerator]
+        POL[LowConfidencePolicy]
+    end
+
+    USE --&gt; START
+    RET -.uses.-&gt; RETR
+    GEN -.uses.-&gt; GEN2
+    EDGE -.uses.-&gt; POL</code></pre> 
+    
+</div>
+<p><strong>State.</strong> <code>AgentState</code> is a single Pydantic v2 frozen model
+(see <code>src/support_bot/domain/answering/entities.py</code>) that
+carries everything a node might read or write:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Set by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>question</code></td>
+<td><code>str</code></td>
+<td>API middleware</td>
+</tr>
+<tr>
+<td><code>request_id</code></td>
+<td><code>str</code></td>
+<td><code>RequestIdMiddleware</code></td>
+</tr>
+<tr>
+<td><code>retrieved_chunks</code></td>
+<td><code>list[RetrievedChunk]</code></td>
+<td><code>retrieve</code></td>
+</tr>
+<tr>
+<td><code>answer</code></td>
+<td><code>str \| None</code></td>
+<td><code>generate</code> / <code>refuse</code></td>
+</tr>
+<tr>
+<td><code>confidence</code></td>
+<td><code>Literal["high","low"] \| None</code></td>
+<td><code>generate</code> / <code>refuse</code></td>
+</tr>
+<tr>
+<td><code>trace</code></td>
+<td><code>list[str]</code></td>
+<td>every node (append)</td>
+</tr>
+</tbody>
+</table>
+<p>Nodes never replace state — they return a <code>dict</code> containing
+<strong>only the keys they are updating</strong>, and LangGraph merges
+that partial update on top of the existing state. This is
+why <code>generate</code> can return <code>{"answer": …, "confidence": "high",
+"trace": state.trace + ["generate"]}</code> without erasing
+<code>retrieved_chunks</code>.</p>
+<p><strong>Node bodies, one by one.</strong></p>
+<ol>
+<li>
+<p><strong><code>retrieve_node</code></strong> — calls
+   <code>retriever.retrieve(question, k=RETRIEVE_K)</code> (<code>k = 4</code>).
+   The <code>Retriever</code> is composed of
+   <code>LexicalRerankRetriever(ChromaRetriever)</code> so the top-1
+   chunk is already promoted by the 4-char stem-prefix
+   re-ranker before it reaches this node. The node records
+   <code>retrieval.candidate_count</code> (= 4) and
+   <code>retrieval.top1_similarity</code> (= the post-rerank cosine) as
+   span attributes, then writes <code>retrieved_chunks</code> and
+   appends <code>"retrieve"</code> to <code>trace</code>.</p>
+</li>
+<li>
+<p><strong><code>guard_node</code></strong> — looks like it should do work, but by
+   design it only appends <code>"guard"</code> to <code>trace</code>. The actual
+   routing decision lives in the conditional edge
+   (<code>_decide</code>). Keeping the edge function free of business
+   logic is a hard rule (AGENTS.md §1.5).</p>
+</li>
+<li>
+<p><strong>conditional edge <code>_decide</code></strong> — receives the state,
+   calls <code>policy.should_refuse(retrieved_chunks)</code>, and
+   returns one of the literals <code>"generate"</code>, <code>"refuse"</code>, or
+   <code>"__end__"</code>. The path is recorded as
+   <code>decision.path</code> on the <code>node.guard_edge</code> span.</p>
+</li>
+<li>
+<p><strong><code>generate_node</code></strong> — calls
+   <code>generator.generate(question, retrieved_chunks)</code>. The
+   <code>AnswerGenerator</code> is wired to <code>OpenAIAnswerGenerator</code>
+   (<code>ChatOpenAI</code> with a "context-only" system prompt) in
+   production or <code>FakeAnswerGenerator</code> in tests. Records
+   <code>answer.tokens_in</code> (sum of chunk lengths — coarse but
+   honest) and <code>answer.tokens_out</code> (the answer length) on
+   the span.</p>
+</li>
+<li>
+<p><strong><code>refuse_node</code></strong> — calls
+   <code>policy.refusal_message()</code>, which returns exactly the
+   string <code>"I cannot answer based on the available content."</code>
+   (this is a hard code constant — the unit test
+   <code>test_low_confidence_policy_foundation.py</code> pins it).
+   Sets <code>confidence = "low"</code>.</p>
+</li>
+</ol>
+<p><strong>Ports and dependencies.</strong> Each node is
+<code>Callable[[AgentState], dict[str, Any]]</code> and accepts its
+collaborator (the port implementation) as a keyword
+argument. <strong>Nodes never import <code>langchain</code>, <code>langgraph</code>,
+or <code>chromadb</code></strong> — that would couple application code to
+the implementation, and the <code>import-linter</code> contract
+in <code>tests/architecture/test_imports.py</code> fails the build if
+they do. The graph itself is compiled exactly once at
+startup by <code>production_factory.build_graph(...)</code>, which
+binds the ports.</p>
+<p><strong>Error handling.</strong> Adapters raise typed domain exceptions
+(<code>VectorStoreUnavailable</code>, <code>LLMUnavailable</code>,
+<code>EmbedderUnavailable</code>). Nodes <strong>re-raise</strong> without
+wrapping, so the API error mapper
+(<code>ErrorResponseMapper</code>) can dispatch them to the right
+HTTP status (503 / 502 / 422 — see AGENTS.md §8). Wrapping
+inside the node would lose that mapping.</p>
+<p><strong>Observability.</strong> Every node opens an OTel span
+(<code>node.retrieve</code>, <code>node.guard</code>, <code>node.generate</code>,
+<code>node.refuse</code>, <code>node.guard_edge</code>) with <code>request.id</code>
+propagated from the API middleware. Every adapter call
+inside a node opens <code>adapter.&lt;port&gt;.&lt;method&gt;</code> and emits
+<code>adapter.call.start</code> (DEBUG) and <code>adapter.call.ok</code> (INFO)
+with <code>request_id</code>, <code>latency_ms</code>, and counts. Even when no
+OTLP exporter is configured
+(<code>OTEL_EXPORTER_OTLP_ENDPOINT</code> empty), the
+<code>opentelemetry-instrumentation-logging</code> package injects
+<code>trace_id</code> / <code>span_id</code> into every <code>structlog</code> line, so the
+spans are still findable in the logs.</p>
+<p><strong>Why not a simpler <code>if/else</code>?</strong> The graph topology is the
+contract. Splitting "did the guard run?" from "what did it
+decide?" makes the state machine inspectable in LangGraph
+Studio / devtools, makes the policy swappable in tests
+without touching the nodes, and gives a future WP an
+escape hatch (e.g. a <code>clarify</code> node between <code>guard</code> and
+<code>generate</code>) without rewriting anything that already works.</p>
+<hr />
+<h3 id="operations">Operations<a class="headerlink" href="#operations" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Docker Compose stack</strong> — three services (<code>chroma</code>, <code>api</code>,
+  <code>ingestion</code>) with healthchecks, named volumes, and a bridge
+  network. <code>docker compose up</code> brings up the API; the ingestion Job
+  is opt-in via <code>--profile ingest</code>.</li>
+<li><strong>Single image for API + Job</strong> — the same Docker image runs as
+  either the FastAPI service or the one-shot CLI Job (different
+  entrypoint). 640 MB image; no torch/transformers required for the
+  default OpenAI embedder.</li>
+<li><strong>OpenTelemetry tracing</strong> — full OTLP/HTTP pipeline, auto-
+  instrumented for FastAPI / httpx / logging / chromadb, plus manual
+  spans around every LangGraph node, adapter call, and the guard
+  edge. Spans are emitted even without an exporter configured
+  (attached to logs via <code>opentelemetry-instrumentation-logging</code>).</li>
+<li><strong>Single request_id propagation</strong> — the FastAPI middleware is the
+  outermost layer; the <code>X-Request-Id</code> header (or auto-generated UUID)
+  binds to <code>structlog.contextvars</code>, attaches as <code>request.id</code> to every
+  OTel span, names the ingestion lock file, and is echoed on the HTTP
+  response. Every log line in the request scope carries it.</li>
+<li><strong>Prometheus metrics</strong> — <code>GET /metrics</code> exposes <code>request_count_total</code>,
+  <code>request_latency_seconds</code>, <code>retrieval_similarity_top1</code>, and
+  <code>adapter_call_latency_seconds</code>.</li>
+<li><strong>Secret scrubbing</strong> — every log line, error response, and OTel
+  attribute passes through <code>SecretScrubber</code>, which strips OpenAI /
+  Anthropic keys and configurable substrings (<code>OPENAI_API_KEY</code>,
+  <code>EMBEDDING_API_KEY</code>, <code>CHROMA_URL</code>). CI runs a helm-template secret
+  scan.</li>
+<li><strong>Debuggable logging</strong> — every non-trivial branch emits a DEBUG
+  <code>structlog</code> line with enough context (counts, sizes, hashes) to
+  reproduce without re-running. INFO/ERROR lines carry latency,
+  status, and IDs but never raw payloads.</li>
+</ul>
+<h3 id="codebase-quality">Codebase quality<a class="headerlink" href="#codebase-quality" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Hexagonal architecture</strong> — four layers (<code>composition</code> → <code>adapters</code>
+  → <code>application</code> → <code>domain</code>) with inward-only dependencies, enforced
+  by <code>import-linter</code>. The <code>domain/</code> package has zero SDK imports
+  (<code>langchain</code>, <code>langgraph</code>, <code>chromadb</code>, <code>fastapi</code>, <code>httpx</code>,
+  <code>pydantic-settings</code>, <code>structlog</code>, <code>opentelemetry</code>); you can exercise
+  the business logic without any of them.</li>
+<li><strong>Pydantic v2 frozen models</strong> for every entity and value object;
+  <code>mypy --strict</code> clean across the source tree.</li>
+<li><strong>Typed exceptions</strong> — <code>DomainError</code> hierarchy (<code>VectorStoreUnavailable</code>,
+  <code>LLMUnavailable</code>, <code>EmbedderUnavailable</code>, <code>SourcePageUnreachable</code>,
+  <code>SourcePageGarbage</code>, <code>ConfigurationError</code>). No bare <code>except Exception</code>
+  in domain or application code.</li>
+<li><strong>100% docstring coverage</strong> on <code>domain/</code>, <code>application/</code>, and
+  <code>composition/</code> (<code>interrogate --fail-under 100</code>). 90% line
+  coverage on <code>domain/</code> and <code>application/</code>, 70% on <code>adapters/</code>, 80%
+  overall.</li>
+<li><strong>TDD workflow</strong> — for every domain or application change, a
+  failing test is committed before the implementation. The git log
+  shows paired <code>test(...)</code> / <code>feat(...)</code> commits.</li>
+<li><strong>Conventional Commits</strong> — <code>feat(WP&lt;NN&gt;): …</code>, <code>test(...): …</code>,
+  <code>chore(...): …</code>, <code>docs(...): …</code>.</li>
+<li><strong>Worktree-only development</strong> — every change happens in
+  <code>.worktrees/&lt;feature&gt;-WP&lt;NN&gt;/</code>; <code>main</code> is only touched by merge
+  commits.</li>
+</ul>
+<hr />
+<h2 id="how-to-run-it">How to run it<a class="headerlink" href="#how-to-run-it" title="Permanent link">&para;</a></h2>
+<p>The fastest path is <code>docker compose up</code>. Full instructions in §1
+below; testing recipes in §1.1.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nv">$EDITOR</span><span class="w"> </span>.env<span class="w">        </span><span class="c1"># set OPENAI_API_KEY, SOURCE_URL</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>deploy/docker-compose.yml<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>--wait
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>deploy/docker-compose.yml<span class="w"> </span>--profile<span class="w"> </span>ingest<span class="w"> </span>up<span class="w"> </span>ingestion
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>curl<span class="w"> </span>-s<span class="w"> </span>localhost:8080/healthz<span class="w">              </span><span class="c1"># -&gt; {"status":"ok"}</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>localhost:8080/ask<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">     </span>-H<span class="w"> </span><span class="s1">'Content-Type: application/json'</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">     </span>-d<span class="w"> </span><span class="s1">'{"question":"Hoe kan ik mijn Ziggo internet instellen?"}'</span>
+</code></pre></div>
+<p>For the full architectural walkthrough see
+<a href="architecture/architecture/"><code>architecture/architecture.md</code></a>
+— a separate document aimed at a developer landing in this
+repo with no prior context. It walks every layer of the
+hexagonal architecture (<code>domain</code> / <code>application</code> / <code>adapter</code> /
+<code>composition</code>), traces a <code>POST /ask</code> request end to end,
+and explains why each subsystem boundary was drawn where
+it is. It complements (does not duplicate) this README:</p>
+<ul>
+<li>The <strong>README</strong> is a quick reference — how to run, how to
+  test, what models are pinned, where the Helm chart lives.
+  You read it once per project.</li>
+<li>The <strong>architecture doc</strong> is a guided tour of the source
+  tree — why the layers split the way they do, how a
+  <code>request_id</code> propagates from middleware to OTel span, why
+  the guard edge lives outside <code>guard_node</code>, and how the
+  Chroma re-ranker is wired. You read it when you need to
+  understand or change the design.</li>
+</ul>
+<p>Cross-cutting rules (TDD, worktrees, layer boundaries,
+coverage thresholds, the three observability rules) live
+in <a href="https://github.com/bruj0/support-agent/blob/main/AGENTS.md"><code>AGENTS.md</code></a>;
+the glossary is in
+<a href="https://github.com/bruj0/support-agent/blob/main/CONTEXT.md"><code>CONTEXT.md</code></a>.
+For the Helm / EKS production deploy see the chart at
+<a href="https://github.com/bruj0/support-agent/tree/main/deploy/helm/support-bot"><code>deploy/helm/support-bot/</code></a>.</p>
+<hr />
+<h2 id="1-how-to-run-locally-with-docker-compose">1. How to run locally with Docker Compose<a class="headerlink" href="#1-how-to-run-locally-with-docker-compose" title="Permanent link">&para;</a></h2>
+<p>Prerequisites: Docker Engine 24+ and Docker Compose v2.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># 1. Copy the env template and fill in your OpenAI key.</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nv">$EDITOR</span><span class="w"> </span>.env<span class="w">                  </span><span class="c1"># set OPENAI_API_KEY, SOURCE_URL</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># 2. Bring up Chroma + the API (waits until healthy).</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>deploy/docker-compose.yml<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>--wait
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1"># 3. (One-time per source) ingest the source page into Chroma.</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>deploy/docker-compose.yml<span class="w"> </span>--profile<span class="w"> </span>ingest<span class="w"> </span>up<span class="w"> </span>ingestion
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="c1"># 4. Smoke-test.</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>curl<span class="w"> </span>-s<span class="w"> </span>localhost:8080/healthz
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="c1"># -&gt; {"status":"ok"}</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="c1"># 5. Ask a question.</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>localhost:8080/ask<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">     </span>-H<span class="w"> </span><span class="s1">'Content-Type: application/json'</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">     </span>-d<span class="w"> </span><span class="s1">'{"question":"What does the support page say about refunds?"}'</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="c1"># 6. Tear down (keeps no state).</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>deploy/docker-compose.yml<span class="w"> </span>down<span class="w"> </span>-v
+</code></pre></div>
+<p>For local Python development without containers, see
+<code>docs/quickstart.md</code> (filled in by WP05).</p>
+<hr />
+<h2 id="11-test-the-service-end-to-end">1.1. Test the service end-to-end<a class="headerlink" href="#11-test-the-service-end-to-end" title="Permanent link">&para;</a></h2>
+<p>This is the fastest way to verify the full pipeline (ingest → embed →
+retrieve → rerank → answer) against a real source page. It assumes
+Docker Compose is already up from §1 and that <code>.env</code> has a working
+<code>OPENAI_API_KEY</code>.</p>
+<h3 id="111-confirm-the-api-is-up">1.1.1. Confirm the API is up<a class="headerlink" href="#111-confirm-the-api-is-up" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-sS<span class="w"> </span>localhost:8080/healthz
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># -&gt; {"status":"ok"}</span>
+</code></pre></div>
+<p>If the API is on a different host (e.g. inside a remote docker
+context), pass the URL:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>-sS<span class="w"> </span>https://support-bot.example.com/healthz
+</code></pre></div>
+<h3 id="112-run-the-ingestion-job">1.1.2. Run the ingestion Job<a class="headerlink" href="#112-run-the-ingestion-job" title="Permanent link">&para;</a></h3>
+<p>The first time you bring the stack up, Chroma is empty. The
+ingestion Job is opt-in (<code>profiles: ["ingest"]</code>) so it doesn't
+run on every <code>docker compose up</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">cd</span><span class="w"> </span>deploy
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>--profile<span class="w"> </span>ingest<span class="w"> </span>up<span class="w"> </span>ingestion
+</code></pre></div>
+<p>The Job prints a single JSON line on completion:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ok"</span><span class="p">,</span><span class="w"> </span><span class="nt">"chunk_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">17</span><span class="p">,</span><span class="w"> </span><span class="nt">"request_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"…"</span><span class="p">}</span>
+</code></pre></div>
+<p>A <code>status</code> of <code>"error"</code> or <code>"skipped"</code> (with <code>reason:
+"run_in_progress"</code>) needs investigation; check the Job's logs:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>--profile<span class="w"> </span>ingest<span class="w"> </span>logs<span class="w"> </span>ingestion
+</code></pre></div>
+<p>To re-ingest (e.g. after editing the analyzer model), delete the
+collection first:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>support-bot-api<span class="w"> </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="s2">from support_bot.composition.settings import Settings</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="s2">import chromadb</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="s2">c = chromadb.HttpClient(host=Settings().chroma_host, port=Settings().chroma_port)</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="s2">c.delete_collection('support_bot')</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="s2">print('cleared')</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="s2">"</span>
+</code></pre></div>
+<h3 id="113-ask-a-question">1.1.3. Ask a question<a class="headerlink" href="#113-ask-a-question" title="Permanent link">&para;</a></h3>
+<p>The API accepts a Dutch question (or any language matching the
+source page) and returns a JSON envelope:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>curl<span class="w"> </span>-sS<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>localhost:8080/ask<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s1">'Content-Type: application/json'</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s1">'X-Request-Id: smoke-001'</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"question":"Hoe kan ik mijn Ziggo internet instellen?"}'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
+</code></pre></div>
+<p>Response shape:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p">{</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">"answer"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Ziggo internet is eenvoudig zelf te installeren met een stappenplan. ..."</span><span class="p">,</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nt">"confidence"</span><span class="p">:</span><span class="w"> </span><span class="s2">"high"</span><span class="p">,</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="nt">"trace"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"retrieve"</span><span class="p">,</span><span class="w"> </span><span class="s2">"guard"</span><span class="p">,</span><span class="w"> </span><span class="s2">"generate"</span><span class="p">],</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">  </span><span class="nt">"request_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"smoke-001"</span><span class="p">,</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span><span class="nt">"top_similarity"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.748</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="p">}</span>
+</code></pre></div>
+<p>Field meanings:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>answer</code></td>
+<td>The generated text (or the fixed refusal string when confidence is <code>"low"</code>).</td>
+</tr>
+<tr>
+<td><code>confidence</code></td>
+<td><code>"high"</code> when the guard passed, <code>"low"</code> when the agent refused.</td>
+</tr>
+<tr>
+<td><code>trace</code></td>
+<td>The LangGraph nodes visited, in order. Always includes <code>"retrieve"</code> and <code>"guard"</code>; then either <code>"generate"</code> or <code>"refuse"</code>.</td>
+</tr>
+<tr>
+<td><code>top_similarity</code></td>
+<td>The blended rerank score (0.0–1.0) of the top-1 chunk.</td>
+</tr>
+<tr>
+<td><code>request_id</code></td>
+<td>Echoed from the <code>X-Request-Id</code> header (or auto-generated when the header is absent).</td>
+</tr>
+</tbody>
+</table>
+<p>Every request also gets the <code>X-Request-Id</code> echoed back on the
+HTTP response, so you can grep the API logs for it.</p>
+<h3 id="114-smoke-all-7-dutch-ziggo-questions">1.1.4. Smoke all 7 Dutch Ziggo questions<a class="headerlink" href="#114-smoke-all-7-dutch-ziggo-questions" title="Permanent link">&para;</a></h3>
+<p>A reasonable regression set for the Ziggo source page:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">for</span><span class="w"> </span>q<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="s2">"Hoe kan ik mijn Ziggo internet instellen?"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="s2">"Welke apparatuur krijg ik van Ziggo bij een internet abonnement?"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span><span class="s2">"Wat is de snelheid van mijn Ziggo internet?"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span><span class="s2">"Kan ik overstappen naar Ziggo?"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="s2">"Komt er een monteur mijn internet aansluiten?"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">  </span><span class="s2">"Is internet van Ziggo beschikbaar op mijn adres?"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">  </span><span class="s2">"Hoe snel is mijn internet?"</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">  </span><span class="nb">printf</span><span class="w"> </span><span class="s1">'\n=== Q: %s ===\n'</span><span class="w"> </span><span class="s2">"</span><span class="nv">$q</span><span class="s2">"</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">  </span>curl<span class="w"> </span>-sS<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>localhost:8080/ask<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">    </span>-H<span class="w"> </span><span class="s1">'Content-Type: application/json'</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">    </span>-d<span class="w"> </span><span class="s2">"{\"question\":\"</span><span class="nv">$q</span><span class="s2">\"}"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">'"  sim=\(.top_similarity|.\(.*\)  answer=\(.answer[0:160])"'</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="k">done</span>
+</code></pre></div>
+<p>Expected: <strong>7/7 answered correctly</strong>, with one (<code>"Is internet van
+Ziggo beschikbaar op mijn adres?"</code>) returning the fixed refusal
+string because the page does not embed a postal-code lookup result.</p>
+<h3 id="115-verify-the-refusal-path">1.1.5. Verify the refusal path<a class="headerlink" href="#115-verify-the-refusal-path" title="Permanent link">&para;</a></h3>
+<p>A question the corpus cannot answer must trigger the guard:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>curl<span class="w"> </span>-sS<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>localhost:8080/ask<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s1">'Content-Type: application/json'</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"question":"Wat is de kvk-inschrijving van Ziggo?"}'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
+</code></pre></div>
+<p>Expected:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="p">{</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nt">"answer"</span><span class="p">:</span><span class="w"> </span><span class="s2">"I cannot answer based on the available content."</span><span class="p">,</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span><span class="nt">"confidence"</span><span class="p">:</span><span class="w"> </span><span class="s2">"low"</span><span class="p">,</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">  </span><span class="nt">"trace"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"retrieve"</span><span class="p">,</span><span class="w"> </span><span class="s2">"guard"</span><span class="p">,</span><span class="w"> </span><span class="s2">"refuse"</span><span class="p">],</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">  </span><span class="nt">"request_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="p">,</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">  </span><span class="nt">"top_similarity"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.42</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="p">}</span>
+</code></pre></div>
+<p>(<code>top_similarity</code> will be below <code>LOW_CONFIDENCE_THRESHOLD</code>, default <code>0.5</code>.)</p>
+<h3 id="116-check-metrics">1.1.6. Check metrics<a class="headerlink" href="#116-check-metrics" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>curl<span class="w"> </span>-sS<span class="w"> </span>localhost:8080/metrics<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-25
+</code></pre></div>
+<p>You should see the four canonical series populated after at least
+one <code>/ask</code>:</p>
+<ul>
+<li><code>request_count_total{route="POST /ask",status="200"}</code> — counter</li>
+<li><code>request_latency_seconds_bucket{route="POST /ask",le="…"}</code> — histogram</li>
+<li><code>retrieval_similarity_top1</code> — gauge (set after the last retrieve node)</li>
+<li><code>adapter_call_latency_seconds_*</code> — histogram per adapter call</li>
+</ul>
+<h3 id="117-tail-logs-filtered-by-request_id">1.1.7. Tail logs filtered by request_id<a class="headerlink" href="#117-tail-logs-filtered-by-request_id" title="Permanent link">&para;</a></h3>
+<p>Every adapter call emits a JSON line containing <code>request_id</code>. To
+trace a single request end-to-end:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># in another shell</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>api<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span>jq<span class="w"> </span>-c<span class="w"> </span><span class="s1">'select(.request_id == "smoke-001")'</span>
+</code></pre></div>
+<p>You'll see one log line per step (<code>adapter.call.start</code>,
+<code>adapter.call.ok</code>) plus the OTel <code>trace_id</code> / <code>span_id</code> injected
+by <code>opentelemetry-instrumentation-logging</code>. With
+<code>OTEL_EXPORTER_OTLP_ENDPOINT</code> set, the same traces are exported
+to your collector for cross-service correlation.</p>
+<h3 id="118-negative-path-checks">1.1.8. Negative-path checks<a class="headerlink" href="#118-negative-path-checks" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Expected response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>curl -X POST localhost:8080/ask -d '{}'</code></td>
+<td><code>HTTP 422</code> with <code>errors</code> listing the missing <code>question</code> field</td>
+</tr>
+<tr>
+<td><code>curl -X POST localhost:8080/ask -d '{"question":""}'</code></td>
+<td><code>HTTP 200</code> with <code>"Ik weet het niet."</code> (low confidence, top-1 similarity ≈ 0)</td>
+</tr>
+<tr>
+<td>Stop the Chroma container, retry <code>/ask</code></td>
+<td><code>HTTP 503 {"detail":"vector store unavailable","request_id":"…"}</code> — then restart with <code>docker compose up -d chroma</code> and the next <code>/ask</code> succeeds (per NFR-001 / API survives Chroma restart)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-models-libraries-and-vector-store-rationale">2. Models, libraries, and vector store rationale<a class="headerlink" href="#2-models-libraries-and-vector-store-rationale" title="Permanent link">&para;</a></h2>
+<p><strong>LLM (<code>openai/gpt-4o-mini</code>).</strong> Chosen for the answerer
+(<code>OPENAIAnswerGenerator</code> adapter) because it is the cheapest
+GPT-4-class model with strong instruction-following at low
+latency (typical first-token &lt; 400 ms). For a 200-word support
+answer the cost is roughly $0.0001 per request, which is
+comfortably inside the NFR-001 p95 &lt; 3 s budget. The system
+prompt constrains the model to "answer ONLY from the provided
+context", and the LangGraph guard node refuses with a fixed
+string when the top-1 retrieval similarity falls below
+<code>LOW_CONFIDENCE_THRESHOLD</code> (default 0.5), so the model cannot
+hallucinate past the retrieval evidence.</p>
+<p><strong>Embedder (<code>openai/text-embedding-3-large</code>, 3072 dims
+truncated to 1024 via Matryoshka).</strong> Default for ingestion
+(<code>OpenAIEmbedder</code> + <code>EMBEDDER_BACKEND=openai</code>) because it is
+the top MTEB-multilingual performer among OpenAI models, keeps
+the embedding step under one HTTP round-trip per batch, and
+removes the ~2 GB <code>sentence-transformers</code> + <code>torch</code> dependency
+from the Docker image. <code>sentence-transformers</code> is now an
+optional <code>local-embedder</code> extra — install it with
+<code>uv sync --extra local-embedder</code> and set
+<code>EMBEDDER_BACKEND=local</code> if you need fully offline embeddings
+(e.g. <code>intfloat/multilingual-e5-large</code>, 1024 dims).</p>
+<p><strong>Vector store (ChromaDB 1.5.x).</strong> Embedded as a sidecar
+container (<code>chromadb/chroma:1.5.9</code> pinned), accessed from the
+API via <code>chromadb.HttpClient</code>. Chosen because it ships as a
+single Docker image, exposes an HTTP API that the
+<code>ChromaVectorStore</code> adapter can wrap directly, and persists
+data on a named volume. The Python client is pinned to the
+same major.minor (<code>chromadb&gt;=1.5,&lt;1.6</code>) so the v2 endpoints
+match. No SQL database is required: the domain model is
+intentionally narrow (SourcePage, Chunk, RetrievedChunk,
+Answer) and lives in memory during a request.</p>
+<p><strong>Orchestration (LangGraph 1.2).</strong> A 4-node <code>StateGraph</code>
+(<code>retrieve → guard → [generate | refuse]</code>) keeps the
+business logic visible in one file and lets the conditional
+edge delegate to an injected <code>LowConfidencePolicy</code> port
+(<code>ThresholdLowConfidencePolicy</code> in production). Future WPs
+can add nodes (e.g. query rewrite, re-rank) without changing
+the graph skeleton.</p>
+<p><strong>HTTP framework (FastAPI 0.115 + uvicorn).</strong> Standard
+async-first choice; integrates cleanly with
+<code>opentelemetry-instrumentation-fastapi</code> for auto-tracing.
+The <code>RequestIdMiddleware</code> is the FIRST middleware so every
+request gets a stable <code>X-Request-Id</code> that propagates into
+structlog, OTel spans, and adapter call logs.</p>
+<hr />
+<h2 id="3-langgraph-workflow-design">3. LangGraph workflow design<a class="headerlink" href="#3-langgraph-workflow-design" title="Permanent link">&para;</a></h2>
+<div class="panzoom-box" data-key="alt" id="panzoom0" oncontextmenu="return false;">
+    <div class="panzoom-info-box panzoom-info-box-top">
+Hold "Alt" / "Option" to enable pan &amp; zoom
+</div>
+    <nav class="panzoom-nav panzoom-top-nav panzoom-nav-infobox-top">
+    <button class="panzoom-reset panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M125.7 160l50.3 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L48 224c-17.7 0-32-14.3-32-32L16 64c0-17.7 14.3-32 32-32s32 14.3 32 32l0 51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"></path>
+    </svg>
+</button><button class="panzoom-max panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z"></path>
+    </svg>
+</button><button class="panzoom-min panzoom-button panzoom-hidden">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z"></path>
+    </svg>
+</button>
+    </nav>
+    <pre class="mermaid"><code>flowchart LR
+    U([User question]) --&gt; API[FastAPI&lt;br/&gt;RequestIdMiddleware]
+    API --&gt; LG[LangGraph&lt;br/&gt;StateGraph]
+    LG --&gt; R[retrieve]
+    R --&gt; CB{{LowConfidencePolicy}}
+    CB --&gt;|confident| G[generate]
+    CB --&gt;|not confident| RF[refuse]
+    G --&gt; ANS([Answer])
+    RF --&gt; ANS</code></pre> 
+    
+</div>
+<p>The <code>AgentState</code> is a Pydantic frozen model carrying the
+question, the <code>request_id</code>, the list of <code>RetrievedChunk</code>s, and
+the final answer. Nodes are <code>Callable[[AgentState], dict]</code>
+returning a partial update — they import <strong>only</strong> ports, never
+<code>langchain</code> / <code>langgraph</code> / <code>chromadb</code>. The conditional edge
+is a single function that returns one of the literal strings
+<code>"generate"</code>, <code>"refuse"</code>, or <code>"__end__"</code>.</p>
+<p>Every node opens an OTel span (<code>node.&lt;name&gt;</code>) with
+<code>request.id</code> propagated from the API middleware. Every
+adapter call inside a node opens <code>adapter.&lt;port&gt;.&lt;method&gt;</code>
+and logs <code>adapter.call.start</code> / <code>adapter.call.ok</code> at DEBUG /
+INFO with <code>request_id</code>, <code>latency_ms</code>, and counts.</p>
+<p>The full local flow (including the ingestion side branch) is
+in <a href="architecture/local-flow/"><code>architecture/local-flow.md</code></a>.</p>
+<hr />
+<h2 id="4-aws-view-production-target">4. AWS view (production target)<a class="headerlink" href="#4-aws-view-production-target" title="Permanent link">&para;</a></h2>
+<div class="panzoom-box" data-key="alt" id="panzoom0" oncontextmenu="return false;">
+    <div class="panzoom-info-box panzoom-info-box-top">
+Hold "Alt" / "Option" to enable pan &amp; zoom
+</div>
+    <nav class="panzoom-nav panzoom-top-nav panzoom-nav-infobox-top">
+    <button class="panzoom-reset panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M125.7 160l50.3 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L48 224c-17.7 0-32-14.3-32-32L16 64c0-17.7 14.3-32 32-32s32 14.3 32 32l0 51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"></path>
+    </svg>
+</button><button class="panzoom-max panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z"></path>
+    </svg>
+</button><button class="panzoom-min panzoom-button panzoom-hidden">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z"></path>
+    </svg>
+</button>
+    </nav>
+    <pre class="mermaid"><code>flowchart LR
+    U([User]) --&gt; R53[Route 53] --&gt; ALB[Application&lt;br/&gt;Load Balancer]
+    ALB --&gt; EKS[EKS cluster&lt;br/&gt;support-bot namespace]
+    EKS --&gt; API[API Pod x 2-4&lt;br/&gt;FastAPI + uvicorn]
+    API --&gt; SM[(Secrets Manager&lt;br/&gt;OPENAI_API_KEY)]
+    API --&gt; OAI([OpenAI API&lt;br/&gt;chat-completions])
+    API --&gt; CHR[Chroma Pod&lt;br/&gt;single replica]
+    CHR --&gt; EBS[(EBS-backed PVC&lt;br/&gt;gp3, Retain)]</code></pre> 
+    
+</div>
+<p><strong>Compute.</strong> The FastAPI image (built by <code>docker/api.Dockerfile</code>)
+runs as a Kubernetes Deployment on EKS with 2–4 replicas behind
+a PodDisruptionBudget. Chroma runs as a single-replica StatefulSet
+backed by an EBS gp3 PVC (<code>persistentVolumeReclaimPolicy: Retain</code>
+per AGENTS.md §2.4); the data volume is small (one source page),
+so vertical scaling is preferred over replication.</p>
+<p><strong>Scaling.</strong> Horizontal Pod Autoscaler on CPU for the API
+(target 60%); Chroma is scaled vertically on demand. The
+ingestion pipeline runs as a Helm <code>post-install</code> /
+<code>post-upgrade</code> Job (Helm hook delete policy: <code>hook-succeeded</code>)
+so a fresh install always populates Chroma.</p>
+<p><strong>Security.</strong> Secrets live in AWS Secrets Manager and are
+mounted into pods via IRSA (IAM Roles for Service Accounts) —
+the pod-to-AWS auth chain never uses static credentials. The
+API pod calls OpenAI over the public internet through a NAT
+Gateway; the Chroma endpoint stays inside the cluster VPC.
+All outbound traffic is logged to CloudWatch via the OTel
+collector sidecar.</p>
+<p><strong>Observability.</strong> OTel OTLP traces ship to a managed
+backend (e.g. AWS X-Ray or a self-hosted Tempo) via the
+OTLP/HTTP exporter. Prometheus scrapes <code>GET /metrics</code> for
+the four canonical series (<code>request_count_total</code>,
+<code>request_latency_seconds</code>, <code>retrieval_similarity_top1</code>,
+<code>adapter_call_latency_seconds</code>); Grafana dashboards and
+alerts are owned by the platform team.</p>
+<hr />
+<h2 id="project-layout">Project layout<a class="headerlink" href="#project-layout" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>src/support_bot/
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>  domain/             # pure business types + ports (Protocol)
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>  application/        # use cases, LangGraph workflow
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>  adapters/           # HTTP scraper, embedder, vector store, answerer
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>  composition/        # FastAPI app + ingestion CLI + Settings
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>deploy/               # docker-compose.yml + start.sh
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>docker/               # api.Dockerfile, ingestion.Dockerfile
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>docs/architecture/    # local-flow.md, aws-flow.md (+ architecture.md walkthrough)
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>tests/
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>  domain/             # unit tests (pure)
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>  application/        # use-case tests with fakes
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>  adapters/           # contract tests against mock servers
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>  architecture/       # import-linter, layer-boundary tests
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a>  e2e/                # docker-compose stack tests (marker: e2e)
+<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a>  fakes/              # in-memory ports (NOT for production use)
+</code></pre></div>
+<hr />
+<h2 id="production-deployment-helm-chart">Production deployment (Helm chart)<a class="headerlink" href="#production-deployment-helm-chart" title="Permanent link">&para;</a></h2>
+<p>The Helm chart at <a href="https://github.com/bruj0/support-agent/tree/main/deploy/helm/support-bot"><code>deploy/helm/support-bot/</code></a>
+packages the FastAPI Deployment, the Chroma Deployment +
+PVC, and the ingestion Job with <code>post-install</code> /
+<code>post-upgrade</code> Helm hooks. <strong>Value validation is done by
+Helm 3's <code>values.schema.json</code></strong> (see
+<a href="https://github.com/bruj0/support-agent/blob/main/deploy/helm/support-bot/values.schema.json"><code>deploy/helm/support-bot/values.schema.json</code></a>)
+— <code>helm install</code> / <code>helm template</code> validate the merged
+values against the JSON Schema <strong>before</strong> rendering any
+templates, so a misconfigured install fails fast at the
+client (<code>Error: values don't meet the specifications of the
+schema(s)</code>) without ever contacting the cluster. This is the
+resolution of <strong>M7</strong> ("bad values fail at install time, not
+silently at runtime").</p>
+<p>The schema enforces:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required</th>
+<th>Pattern / shape</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>secret.openaiApiKey</code></td>
+<td>yes</td>
+<td><code>^sk-[A-Za-z0-9]{20,}$</code> (min 23 chars)</td>
+</tr>
+<tr>
+<td><code>secret.embeddingApiKey</code></td>
+<td>optional</td>
+<td>same <code>sk-…</code> shape, or <code>null</code></td>
+</tr>
+<tr>
+<td><code>secret.chromaAuthToken</code></td>
+<td>optional</td>
+<td>non-empty string, or <code>null</code></td>
+</tr>
+<tr>
+<td><code>config.sourceUrl</code></td>
+<td>yes</td>
+<td>absolute <code>http(s)://…</code> URL, min 8 chars</td>
+</tr>
+<tr>
+<td><code>config.logLevel</code></td>
+<td>no</td>
+<td>one of <code>DEBUG</code>/<code>INFO</code>/<code>WARNING</code>/<code>ERROR</code>/<code>CRITICAL</code></td>
+</tr>
+<tr>
+<td><code>config.embedderBackend</code></td>
+<td>no</td>
+<td><code>local</code> | <code>openai</code></td>
+</tr>
+<tr>
+<td><code>config.answererBackend</code></td>
+<td>no</td>
+<td><code>openai</code> | <code>fake</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="production-install">Production install<a class="headerlink" href="#production-install" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># 1. Create the namespace + image pull secret for your registry</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="c1"># (skip if your registry is public or you use the default).</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>kubectl<span class="w"> </span>create<span class="w"> </span>namespace<span class="w"> </span>support-bot
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>kubectl<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>docker-registry<span class="w"> </span>support-bot-registry<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">    </span>--namespace<span class="w"> </span>support-bot<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">    </span>--docker-server<span class="o">=</span>&lt;REGISTRY&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">    </span>--docker-username<span class="o">=</span>&lt;USER&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="w">    </span>--docker-password<span class="o">=</span>&lt;PASSWORD&gt;
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="c1"># 2. Install the chart with the prod values overlay. The schema</span>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="c1"># rejects empty secret.openaiApiKey and empty config.sourceUrl</span>
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a><span class="c1"># so a typo or missing env-var fails immediately at the client.</span>
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>helm<span class="w"> </span>install<span class="w"> </span>support-bot<span class="w"> </span>deploy/helm/support-bot/<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a><span class="w">    </span>--namespace<span class="w"> </span>support-bot<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a><span class="w">    </span>--values<span class="w"> </span>deploy/helm/support-bot/values-prod.yaml<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a><span class="w">    </span>--set<span class="w"> </span>secret.openaiApiKey<span class="o">=</span><span class="nv">$OPENAI_API_KEY</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a><span class="w">    </span>--set<span class="w"> </span>config.sourceUrl<span class="o">=</span>https://your.support.page/internet
+</code></pre></div>
+<h3 id="scaling">Scaling<a class="headerlink" href="#scaling" title="Permanent link">&para;</a></h3>
+<p>The API ships with <code>values-prod.yaml</code>'s HPA enabled (2–6
+replicas, CPU 60%). To resize:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>helm<span class="w"> </span>upgrade<span class="w"> </span>support-bot<span class="w"> </span>deploy/helm/support-bot/<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">    </span>--namespace<span class="w"> </span>support-bot<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">    </span>--reuse-values<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">    </span>--set<span class="w"> </span>autoscaling.minReplicas<span class="o">=</span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">    </span>--set<span class="w"> </span>autoscaling.maxReplicas<span class="o">=</span><span class="m">10</span>
+</code></pre></div>
+<p>Chroma is single-replica by design (vertical scale only).
+Increase <code>resources.chroma.limits</code> to handle larger
+collections.</p>
+<h3 id="secrets-rotation">Secrets rotation<a class="headerlink" href="#secrets-rotation" title="Permanent link">&para;</a></h3>
+<p>The chart's <code>Secret</code> template has empty defaults; keys are
+supplied at install time and stored in the cluster Secret
+unencrypted-at-rest (default Kubernetes behaviour). For
+production rotation:</p>
+<ol>
+<li>Patch the secret with a new key value:
+   <code>kubectl create secret ... --dry-run=client -o yaml | kubectl apply -f -</code></li>
+<li>Roll the deployment: <code>kubectl rollout restart deployment/&lt;name&gt;</code></li>
+<li>The OTel collector log lines will show the new key hash
+   once the new pod boots (the SecretScrubber keeps the raw
+   key out of logs and span attributes).</li>
+</ol>
+<h3 id="pvc-retention-across-reinstalls">PVC retention across reinstalls<a class="headerlink" href="#pvc-retention-across-reinstalls" title="Permanent link">&para;</a></h3>
+<p>The PVC reclaim policy is operator-controlled at the
+<strong>StorageClass</strong> level (not the PVC level). The chart ships
+no <code>StorageClass</code>; the README and chart comment instruct the
+operator to provision the underlying StorageClass with
+<code>reclaimPolicy: Retain</code> per AGENTS.md §2.4. The values
+defaults to <code>5Gi</code>; <code>values-prod.yaml</code> overrides to <code>10Gi</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># provision your StorageClass with:</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">storage.k8s.io/v1</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">StorageClass</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">support-bot-gp3</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="nt">provisioner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ebs.csi.aws.com</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="nt">reclaimPolicy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Retain</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="nt">parameters</span><span class="p">:</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gp3</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">  </span><span class="nt">fsType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ext4</span>
+</code></pre></div>
+<p>Then point the chart at it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>helm<span class="w"> </span>install<span class="w"> </span>support-bot<span class="w"> </span>deploy/helm/support-bot/<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">    </span>--set<span class="w"> </span>persistence.storageClassName<span class="o">=</span>support-bot-gp3
+</code></pre></div>
+<h3 id="ci-github-actions">CI / GitHub Actions<a class="headerlink" href="#ci-github-actions" title="Permanent link">&para;</a></h3>
+<p>The <code>.github/workflows/ci.yml</code> workflow runs the full
+quality gate on every push and PR: pytest, coverage,
+interrogate, ruff, lint-imports, helm lint (with valid
+overrides per <code>test_helm_lint_passes_with_valid_overrides</code>),
+helm template kind coverage, the values.schema.json
+rejection tests (<code>test_helm_schema_rejects_*</code>), and a
+Secret scan on rendered manifests.</p>
+<hr />
+<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
+<p><a href="https://github.com/bruj0/support-agent/blob/main/LICENSE">MIT</a> — see <a href="https://github.com/bruj0/support-agent/blob/main/LICENSE"><code>LICENSE</code></a> for the full text.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+        
+          
+          <a href="c4/" class="md-footer__link md-footer__link--next" aria-label="Next: Overview">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Overview
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "search.share", "content.code.copy", "toc.follow"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@11/dist/mermaid.min.js"></script>
+      
+        <script src="js/mermaid-init.js"></script>
+      
+        <script src="assets/javascripts/panzoom.min.js"></script>
+      
+        <script src="assets/javascripts/zoompan.js"></script>
+      
+    
+  </body>
+</html>
