@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP06"
 title: "Observability & Policy — ADOT, NetworkPolicy, Pod Security Standards"
-lane: "for_review"
+lane: "doing"
 dependencies:
   - "WP02"
   - "WP03"
@@ -19,6 +19,8 @@ abstract_components:
   - "NetworkPolicies (from S6 plan)"
   - "VpcCniNetworkPolicy (from S6 plan — VPC CNI addon enabled in WP02)"
 agent: "cursor"
+reviewed_by: "spec-bridge-review"
+review_status: "in_progress"
 tdd_red_clean: true
 build_validated: true
 history:
@@ -30,6 +32,10 @@ history:
     lane: "for_review"
     agent: "cursor"
     action: "implementation complete, ready for review"
+  - timestamp: "2026-09-13T08:05:00+00:00"
+    lane: "doing"
+    agent: "spec-bridge-review"
+    action: "review started"
 ---
 
 # WP06 — Observability & Policy
