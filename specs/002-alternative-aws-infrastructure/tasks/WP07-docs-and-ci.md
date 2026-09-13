@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP07"
 title: "Docs — infra/README.md + aws-flow-v2.md + CI completion"
-lane: "doing"
+lane: "for_review"
 dependencies:
   - "WP01"
   - "WP02"
