@@ -2,31 +2,36 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/example/support-bot/values.schema.json",
   "title": "support-bot Helm values",
-  "description": "JSON Schema for support-bot chart values. Enforced by Helm 3 BEFORE any template rendering, so a bad install fails fast at the client with a clear error. Resolves M7 ('bad Helm values fail at install time, not silently at runtime') from WP05 v1 review Issue 1 -- the previous pre-install-hook implementation was structurally unable to validate the Secret and ConfigMap because pre-install hooks run before any release resources exist.",
+  "description": "JSON Schema for support-bot chart values. Enforced by Helm 3 BEFORE any template rendering, so a bad install fails fast at the client with a clear error. WP03 updates the schema to allow secrets to be supplied via External Secrets Operator (default) OR via inline chart values (legacy, for WP03 transition + local tests). The 'useLegacySecretInlining' toggle switches the schema's `secret.openaiApiKey` requirement.",
   "type": "object",
   "additionalProperties": true,
   "required": ["secret", "config"],
   "properties": {
+    "useLegacySecretInlining": {
+      "description": "WP03 toggle. When true (legacy default for backward compat with WP03 transition), the chart requires inline secret.openaiApiKey matching the sk-<base62> regex. When false (post-WP03 default), the chart relies on ExternalSecrets to populate secret values from AWS Secrets Manager.",
+      "type": "boolean",
+      "default": false
+    },
     "secret": {
-      "description": "API keys + tokens mounted as a Kubernetes Secret. All values default to empty strings -- the operator MUST supply them at install time via --set or an external secret manager (NFR-003 / SecretScrubber).",
+      "description": "API keys + tokens mounted as a Kubernetes Secret. When useLegacySecretInlining=true, all values MUST be supplied at install time. When false (WP03 default), values are pulled from AWS Secrets Manager via External Secrets Operator and this object can be empty.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["openaiApiKey"],
+      "required": [],
       "properties": {
         "openaiApiKey": {
-          "description": "OpenAI API key for the answerer adapter (WP02). Must be non-empty and look like a real OpenAI key (sk-<base62>, >=20 chars after the prefix) so that operators catch typos at install time rather than at first request.",
-          "type": "string",
+          "description": "OpenAI API key for the answerer adapter. Required when useLegacySecretInlining=true (sk-<base62>, >=20 chars after prefix). Use null when useLegacySecretInlining=false.",
+          "type": ["string", "null"],
           "minLength": 23,
           "pattern": "^sk-[A-Za-z0-9]{20,}$"
         },
         "embeddingApiKey": {
-          "description": "OpenAI API key for the OpenAI embedder backend. Optional -- only required when EMBEDDER_BACKEND=openai. If supplied, must follow the same sk-<base62> shape as openaiApiKey so operators catch typos. Use null (the default) when EMBEDDER_BACKEND=local.",
+          "description": "OpenAI API key for the OpenAI embedder backend. Optional -- only required when EMBEDDER_BACKEND=openai. Use null when not needed.",
           "type": ["string", "null"],
           "minLength": 23,
           "pattern": "^sk-[A-Za-z0-9]{20,}$"
         },
         "chromaAuthToken": {
-          "description": "Chroma auth token. Optional -- only required when CHROMA_AUTH_TOKEN is set in the Chroma server config. Use null (the default) for unauthenticated Chroma.",
+          "description": "Chroma auth token. Optional. Use null for unauthenticated Chroma.",
           "type": ["string", "null"],
           "minLength": 1
         }
