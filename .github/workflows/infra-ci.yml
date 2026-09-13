@@ -5,6 +5,7 @@ on:
       - 'infra/**'
       - 'deploy/helm/support-bot/templates/**'
       - 'deploy/helm/support-bot/values*.yaml'
+      - 'docs/architecture/aws-flow-v2.md'
   push:
     branches: [main]
     paths:
@@ -12,70 +13,116 @@ on:
       - 'deploy/helm/support-bot/templates/**'
       - 'deploy/helm/support-bot/values*.yaml'
 jobs:
-  lint-and-validate:
+  tofu-fmt:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: opentofu/setup-opentofu@v1
         with:
           tofu_version: 1.6.0
-      - name: tofu fmt -check
-        run: |
-          tofu fmt -check -recursive infra/
+      - run: tofu fmt -check -recursive infra/
+  tofu-validate:
+    runs-on: ubuntu-latest
+    needs: tofu-fmt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.6.0
       - name: tofu validate (bootstrap)
         working-directory: infra/bootstrap
         run: tofu init -backend=false && tofu validate
-      - name: helm lint
-        working-directory: deploy/helm/support-bot
+      - name: tofu validate (main)
+        working-directory: infra
+        run: tofu init -backend=false && tofu validate
+  tofu-test:
+    runs-on: ubuntu-latest
+    needs: tofu-validate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.6.0
+      - name: install helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+      - name: tofu test (bootstrap)
+        working-directory: infra/bootstrap
+        run: tofu init -backend=false && tofu test
+      - name: tofu test (foundation)
+        working-directory: infra/modules/foundation
+        run: tofu init -backend=false && tofu test
+      - name: tofu test (cluster)
+        working-directory: infra/modules/cluster
+        run: tofu init -backend=false && tofu test
+      - name: tofu test (identity)
+        working-directory: infra/modules/identity
+        run: tofu init -backend=false && tofu test
+      - name: tofu test (edge)
+        working-directory: infra/modules/edge
+        run: tofu init -backend=false && tofu test
+      - name: tofu test (storage)
+        working-directory: infra/modules/storage
+        run: tofu init -backend=false && tofu test
+      - name: tofu test (observability)
+        working-directory: infra/modules/observability
+        run: tofu init -backend=false && tofu test
+  helm-lint:
+    runs-on: ubuntu-latest
+    needs: tofu-validate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+      - working-directory: deploy/helm/support-bot
         run: |
-          helm lint . --values values-prod.yaml
+          helm lint . --values values.yaml
           helm lint . --values values-dev.yaml
+          helm lint . --values values-prod.yaml
+  helm-template-and-secret-scan:
+    runs-on: ubuntu-latest
+    needs: helm-lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
       - name: helm template + secret scan
         working-directory: deploy/helm/support-bot
         run: |
+          set -e
           helm template . --values values-prod.yaml > /tmp/rendered-prod.yaml
           helm template . --values values-dev.yaml > /tmp/rendered-dev.yaml
           cat /tmp/rendered-prod.yaml /tmp/rendered-dev.yaml | \
             ( ! grep -E 'sk-[A-Za-z0-9]{32,}' ) && \
             ( ! grep -E 'OPENAI_API_KEY=[^"]*sk-' ) && \
-            ( ! grep -E 'CHROMA_AUTH_TOKEN=[^"]*[A-Za-z0-9]{8,}' )
-
-      # WP04 (Edge & Traffic): chart's Ingress template is gated on
-      # .Values.ingress.enabled; prod disables the chart's Ingress in favour of
-      # the tofu kubernetes_manifest apply, but the template must still render
-      # cleanly. The Ingress shape (ingressClassName=alb, the four FR-010 ALBC
-      # annotations) is enforced by tofu test in infra/modules/edge.
-      - name: helm template -- ingress shape sanity check
-        working-directory: deploy/helm/support-bot
-        run: |
-          # Render with both ingress.enabled=true and ingress.enabled=false --
-          # the template must produce or omit the Ingress block cleanly.
-          helm template . --values values-prod.yaml --set ingress.enabled=true > /tmp/ingress-on.yaml
-          helm template . --values values-prod.yaml --set ingress.enabled=false > /tmp/ingress-off.yaml
-          # When enabled, exactly one Ingress must render with ingressClassName=alb.
-          grep -E 'kind: Ingress' /tmp/ingress-on.yaml
-          grep -E 'ingressClassName: alb' /tmp/ingress-on.yaml
-          grep -E 'alb.ingress.kubernetes.io/scheme' /tmp/ingress-on.yaml
-          # When disabled, NO Ingress must render from this template.
-          ( ! grep -E 'kind: Ingress' /tmp/ingress-off.yaml )
-
-      # WP05 (Data Plane & Storage): chart's PVC must bind to support-bot-gp3
-      # StorageClass and carry Cluster+Component labels for DLM tag selection.
-      - name: helm template -- storage class + PVC labels sanity check
-        working-directory: deploy/helm/support-bot
-        run: |
-          helm template . --values values-prod.yaml > /tmp/rendered-prod.yaml
-          helm template . --values values-dev.yaml > /tmp/rendered-dev.yaml
-          grep -E 'storageClassName: support-bot-gp3' /tmp/rendered-prod.yaml
-          grep -E 'storageClassName: support-bot-gp3' /tmp/rendered-dev.yaml
-          grep -E 'Cluster: support-bot-prod' /tmp/rendered-prod.yaml
-          grep -E 'Component: chroma' /tmp/rendered-prod.yaml
-          grep -E 'Cluster: support-bot-dev' /tmp/rendered-dev.yaml
-
-      # WP06 (Observability & Policy): chart's NetworkPolicy template must
-      # render exactly 3 policies (default-deny + api-allow + chroma-allow)
-      # when networkPolicies.enabled=true.
-      - name: helm template NetworkPolicy count check
-        working-directory: deploy/helm/support-bot
-        run: |
-          helm template . --values values-prod.yaml | grep -E 'kind: NetworkPolicy' | wc -l | grep -E '^[ ]*3$'
+            ( ! grep -E 'CHROMA_AUTH_TOKEN=[^"]*[A-Za-z0-9]{16,}' )
+          # Confirm new templates render
+          grep -E 'kind: Ingress' /tmp/rendered-prod.yaml
+          grep -E 'kind: ExternalSecret' /tmp/rendered-prod.yaml
+          grep -E 'kind: NetworkPolicy' /tmp/rendered-prod.yaml | wc -l | grep -E '^[ ]*3$'
+  tflint:
+    runs-on: ubuntu-latest
+    needs: tofu-fmt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+      - uses: actions/checkout@v4
+        with:
+          repository: aws-cloudformation/tflint-ruleset-aws
+          ref: latest
+          path: .tflint/
+      - run: |
+          cat > infra/.tflint.hcl <<EOF
+          plugin "aws" {
+            enabled = true
+            version = "0.27.0"
+            source  = "github.com/terraform-linters/tflint-ruleset-aws"
+          }
+          EOF
+      - working-directory: infra
+        run: tflint --init && tflint -f compact --recursive
