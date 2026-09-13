@@ -29,3 +29,8 @@ output "alb_access_logs_bucket" {
 output "alb_access_logs_bucket_arn" {
   value = module.edge.alb_access_logs_bucket_arn
 }
+
+output "application_log_group_arn" { value = module.observability.application_log_group_arn }
+output "otel_log_group_arn" { value = module.observability.otel_log_group_arn }
+output "adot_collector_endpoint" { value = module.observability.adot_collector_endpoint }
+output "network_policy_names" { value = module.observability.network_policy_names }
