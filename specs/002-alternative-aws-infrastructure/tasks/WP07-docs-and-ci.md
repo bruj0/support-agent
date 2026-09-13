@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP07"
 title: "Docs — infra/README.md + aws-flow-v2.md + CI completion"
-lane: "planned"
+lane: "doing"
 dependencies:
   - "WP01"
   - "WP02"
@@ -14,8 +14,13 @@ misfits_addressed:
   - "(none — pure docs/CI; the existing WPs already cover the misfits)"
 abstract_components:
   - "(documentation + CI)"
-agent: ""
-history: []
+agent: "cursor"
+history:
+  - event: "start"
+    at: "2026-07-23T12:00:00Z"
+    by: "cursor"
+    lane_before: "planned"
+    lane_after: "doing"
 ---
 
 # WP07 — Docs + CI completion
