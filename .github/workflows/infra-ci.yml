@@ -39,3 +39,22 @@ jobs:
             ( ! grep -E 'sk-[A-Za-z0-9]{32,}' ) && \
             ( ! grep -E 'OPENAI_API_KEY=[^"]*sk-' ) && \
             ( ! grep -E 'CHROMA_AUTH_TOKEN=[^"]*[A-Za-z0-9]{8,}' )
+
+      # WP04 (Edge & Traffic): chart's Ingress template is gated on
+      # .Values.ingress.enabled; prod disables the chart's Ingress in favour of
+      # the tofu kubernetes_manifest apply, but the template must still render
+      # cleanly. The Ingress shape (ingressClassName=alb, the four FR-010 ALBC
+      # annotations) is enforced by tofu test in infra/modules/edge.
+      - name: helm template -- ingress shape sanity check
+        working-directory: deploy/helm/support-bot
+        run: |
+          # Render with both ingress.enabled=true and ingress.enabled=false --
+          # the template must produce or omit the Ingress block cleanly.
+          helm template . --values values-prod.yaml --set ingress.enabled=true > /tmp/ingress-on.yaml
+          helm template . --values values-prod.yaml --set ingress.enabled=false > /tmp/ingress-off.yaml
+          # When enabled, exactly one Ingress must render with ingressClassName=alb.
+          grep -E 'kind: Ingress' /tmp/ingress-on.yaml
+          grep -E 'ingressClassName: alb' /tmp/ingress-on.yaml
+          grep -E 'alb.ingress.kubernetes.io/scheme' /tmp/ingress-on.yaml
+          # When disabled, NO Ingress must render from this template.
+          ( ! grep -E 'kind: Ingress' /tmp/ingress-off.yaml )
