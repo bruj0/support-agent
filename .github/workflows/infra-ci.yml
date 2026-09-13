@@ -39,3 +39,24 @@ jobs:
             ( ! grep -E 'sk-[A-Za-z0-9]{32,}' ) && \
             ( ! grep -E 'OPENAI_API_KEY=[^"]*sk-' ) && \
             ( ! grep -E 'CHROMA_AUTH_TOKEN=[^"]*[A-Za-z0-9]{8,}' )
+
+      # WP05 (Data Plane & Storage): chart's PVC must bind to support-bot-gp3
+      # StorageClass and carry Cluster+Component labels for DLM tag selection.
+      - name: helm template -- storage class + PVC labels sanity check
+        working-directory: deploy/helm/support-bot
+        run: |
+          helm template . --values values-prod.yaml > /tmp/rendered-prod.yaml
+          helm template . --values values-dev.yaml > /tmp/rendered-dev.yaml
+          grep -E 'storageClassName: support-bot-gp3' /tmp/rendered-prod.yaml
+          grep -E 'storageClassName: support-bot-gp3' /tmp/rendered-dev.yaml
+          grep -E 'Cluster: support-bot-prod' /tmp/rendered-prod.yaml
+          grep -E 'Component: chroma' /tmp/rendered-prod.yaml
+          grep -E 'Cluster: support-bot-dev' /tmp/rendered-dev.yaml
+
+      # WP06 (Observability & Policy): chart's NetworkPolicy template must
+      # render exactly 3 policies (default-deny + api-allow + chroma-allow)
+      # when networkPolicies.enabled=true.
+      - name: helm template NetworkPolicy count check
+        working-directory: deploy/helm/support-bot
+        run: |
+          helm template . --values values-prod.yaml | grep -E 'kind: NetworkPolicy' | wc -l | grep -E '^[ ]*3$'

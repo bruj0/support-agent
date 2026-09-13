@@ -37,3 +37,14 @@ module "identity" {
   chroma_auth_token     = var.chroma_auth_token
   domain_suffix         = var.domain_suffix
 }
+
+module "observability" {
+  source = "./modules/observability"
+
+  env                       = var.env
+  eks_cluster_name          = module.cluster.cluster_name
+  adot_role_arn             = module.identity.adot_role_arn
+  cmk_arn                   = module.identity.cmk_arn
+  cluster_security_group_id = module.cluster.cluster_security_group_id
+  region                    = var.region
+}
