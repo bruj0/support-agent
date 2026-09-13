@@ -37,6 +37,10 @@ history:
     lane: "done"
     agent: "spec-bridge-review"
     action: "review approved (9 pass / 3 partial / 0 issues); 3 partials are canonical AWS-API checks deferred to first cluster create"
+  - timestamp: "2026-09-13T13:30:00+00:00"
+    lane: "done"
+    agent: "cursor"
+    action: "RECOVERY: WP05 feat commit (70d9570) was lost to git reset --hard main on 2026-09-12 13:27:30. Restored from reflog as cherry-pick 17c9b86 onto 002-alternative-aws-infrastructure-WP05. tofu test now passes 10/10 on the storage module. Side-effect root.tf / root_outputs.tf / infra-ci.yml changes from the lost commit were excluded as out of scope for WP05. WP07 review Issue 1 (storage module empty) is now resolved on the WP05 branch; full resolution still requires spec-bridge-merge to land it on main."
 ---
 
 # WP05 — Data Plane & Storage
