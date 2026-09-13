@@ -22,5 +22,9 @@ podDisruptionBudget:
   enabled: false
 autoscaling:
   enabled: false
+
+# Ingress is owned by the `edge` tofu module (kubernetes_manifest).
+# Disable the chart's own Ingress template here; FR-010 annotations
+# flow through the tofu code, not the chart.
 ingress:
   enabled: false
