@@ -1,5 +1,10 @@
 # AWS production flow
 
+> **DEPRECATED.** This document is superseded by [`aws-flow-v2.md`](aws-flow-v2.md),
+> produced by feature `002-alternative-aws-infrastructure`. The text below
+> describes the pre-OpenTofu prose design and is kept only for reference.
+> Remove this file in a follow-up chore after `aws-flow-v2.md` is verified.
+
 > **Audience:** anyone deploying the stack to EKS or
 > reasoning about the production topology. Pairs with the
 > [`architecture.md`](architecture.md) walkthrough and the
