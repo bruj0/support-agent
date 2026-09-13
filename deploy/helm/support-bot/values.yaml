@@ -153,3 +153,18 @@ serviceAccounts:
       namespace: opentelemetry
     - name: aws-load-balancer-controller
       namespace: kube-system
+
+# Ingress resource consumed by the AWS Load Balancer Controller. The actual
+# apply is performed by the `edge` tofu module via `kubernetes_manifest`;
+# this block exists so a downstream feature can install the chart and rely
+# on the same ALB annotations (FR-010).
+ingress:
+  enabled: true
+  name: support-bot-api
+  scheme: internal
+  targetType: ip
+  sslPolicy: ELBSecurityPolicy-TLS13-1-2-2021-06
+  host: "{{ .Values.env }}.{{ .Values.domainSuffix }}"
+  backendService: support-bot-api
+  backendPort: 8000
+  wafv2AclArn: ""
