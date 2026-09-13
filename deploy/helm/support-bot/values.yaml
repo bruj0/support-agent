@@ -41,7 +41,15 @@ chroma:
 persistence:
   enabled: true
   size: 5Gi
-  storageClassName: ""
+  # Bound to the storage module's Gp3StorageClass (support-bot-gp3). The chart
+  # only injects this default; the StorageClass resource itself is provisioned
+  # by `tofu apply` via modules/storage.
+  storageClassName: support-bot-gp3
+  # Labels flow from PVC metadata to the EBS volume tags when the EBS CSI
+  # driver is configured with `extra-volume-tags-from-pvc-labels`. The DLM
+  # snapshot policy (modules/storage) selects on these labels. Per-env values
+  # are set in values-dev.yaml / values-prod.yaml.
+  labels: {}
   accessModes:
     - ReadWriteOnce
 
