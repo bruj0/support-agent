@@ -18,6 +18,9 @@ config:
 persistence:
   enabled: true
   size: 1Gi
+  labels:
+    Cluster: support-bot-dev
+    Component: chroma
 podDisruptionBudget:
   enabled: false
 autoscaling:
