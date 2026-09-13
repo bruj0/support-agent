@@ -1,7 +1,7 @@
 ---
 work_package_id: "WP06"
 title: "Observability & Policy — ADOT, NetworkPolicy, Pod Security Standards"
-lane: "doing"
+lane: "for_review"
 dependencies:
   - "WP02"
   - "WP03"
@@ -26,6 +26,10 @@ history:
     lane: "doing"
     agent: "cursor"
     action: "started implementation"
+  - timestamp: "2026-09-12T21:10:00+00:00"
+    lane: "for_review"
+    agent: "cursor"
+    action: "implementation complete, ready for review"
 ---
 
 # WP06 — Observability & Policy
