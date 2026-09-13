@@ -52,3 +52,14 @@ module "edge" {
   cmk_arn                        = module.identity.cmk_arn
   vpc_endpoint_security_group_id = module.foundation.vpc_endpoint_security_group_id
 }
+
+module "observability" {
+  source = "./modules/observability"
+
+  env                       = var.env
+  eks_cluster_name          = module.cluster.cluster_name
+  adot_role_arn             = module.identity.adot_role_arn
+  cmk_arn                   = module.identity.cmk_arn
+  cluster_security_group_id = module.cluster.cluster_security_group_id
+  region                    = var.region
+}
