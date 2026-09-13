@@ -153,3 +153,15 @@ serviceAccounts:
       namespace: opentelemetry
     - name: aws-load-balancer-controller
       namespace: kube-system
+
+# NetworkPolicies (deny-by-default + per-workload allow). The actual apply
+# is performed by the `observability` tofu module via `kubernetes_manifest`;
+# this block exists so a downstream feature can install the chart and rely
+# on the same policy shape under `.Values.networkPolicies`.
+networkPolicies:
+  enabled: true
+  defaultDeny: true
+
+appLabels:
+  api: "support-bot-api"
+  chroma: "support-bot-chroma"
