@@ -20,6 +20,7 @@ abstract_components:
   - "VpcCniNetworkPolicy (from S6 plan — VPC CNI addon enabled in WP02)"
 agent: "cursor"
 tdd_red_clean: true
+build_validated: true
 history:
   - timestamp: "2026-09-12T20:05:00+00:00"
     lane: "doing"
