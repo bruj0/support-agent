@@ -515,3 +515,34 @@ Add a CI step:
 - The NetworkPolicy `podSelector` for the api-allow policy uses `matchLabels.app = "support-bot-api"`. The chart's deployment templates must set this label — verify by reading `templates/deployment-api.yaml`. If they do NOT, add `podLabels.app: support-bot-api` to the values (additive only).
 - The default-deny policy has empty `podSelector: {}` which selects ALL pods in the namespace. This is intentional — combined with the per-workload allow policies, it implements "deny by default, allow by exception".
 - The kube-dns egress uses `namespaceSelector` with `kubernetes.io/metadata.name = kube-system`. This works only if the kube-system namespace has that label (it does in EKS 1.22+).
+
+---
+
+## Implementation Summary
+
+**Worktree**: `` on branch ``
+
+WP06 implements S6 Observability & Policy end-to-end. The observability module provisions 2 CloudWatch log groups (application 30d + otel 7d, KMS-encrypted with the per-env CMK), the 3-level Pod Security Standards labels on the support-bot namespace (enforce+warn+audit=restricted), and 3 NetworkPolicy resources (default-deny + api-allow + chroma-allow) that implement deny-by-default + per-workload allow. The ADOT collector is installed as a Helm release on hostNetwork=true with Pod Identity association to var.adot_role_arn; the release is gated by var.test_mode for `tofu test` (mirroring the cluster module's karpenter exclusion pattern). The chart learns templates/networkpolicy.yaml (gated on .Values.networkPolicies.enabled) so a downstream chart install reproduces the same 3-policy shape. values.yaml adds networkPolicies.enabled=true, defaultDeny=true, and the appLabels.api / appLabels.chroma selectors. 6/6 observability tests pass (dropped from the original 8-run design to 6 because the ADOT helm release target is excluded from tofu test, same as cluster's karpenter); tofu validate clean across root + 6 modules; helm lint clean for prod+dev; helm template renders exactly 3 NetworkPolicy resources.
+
+### Files created
+
+| File | Description |
+|------|-------------|
+| `infra/modules/observability/versions.tf` | Provider pinning (aws + helm + kubernetes) for S6 Observability & Policy. |
+| `infra/modules/observability/variables.tf` | 7 module inputs (env, eks_cluster_name, adot_role_arn, cmk_arn, cluster_security_group_id, region [default eu-central-1], test_mode [default false]). |
+| `infra/modules/observability/main.tf` | AdotCollectorHelm (hostNetwork=true, Pod Identity, region-stamped awsxray+awsemf exporters); ApplicationLogGroup (30d, KMS-encrypted, /aws/eks/support-bot-<env>/application); OtelLogGroup (7d, KMS-encrypted, /aws/eks/support-bot-<env>/otel); support_bot_namespace_labels (3 PSS labels); support_bot_default_deny (empty podSelector, both Ingress+Egress); support_bot_api_allow (5 egress ports: Chroma :8000, OpenAI :443 RFC1918-excluded, ADOT :4318, kube-dns :53, EKS API :443); support_bot_chroma_allow (3 egress ports: ADOT :4318, kube-dns :53, EKS API :443). Resolves M1 (trace_id/span_id via ADOT OTLP), M2 (PSS restricted), M7 (NetworkPolicy egress). |
+| `infra/modules/observability/outputs.tf` | 6 outputs: adot_collector_endpoint, application_log_group_name/arn, otel_log_group_name/arn, network_policy_names (list of 3). |
+| `infra/modules/observability/tests/observability.tftest.hcl` | 6 run blocks asserting log-group retention+KMS (M1), namespace PSS labels (M2), and the 3 NetworkPolicy resources' policyTypes + selectors (M7). ADOT helm release target is excluded (mirrors the cluster module's karpenter exclusion) — the chart shape is enforced by the CI helm lint step. |
+| `deploy/helm/support-bot/templates/networkpolicy.yaml` | Additive template mirroring the 3 NetworkPolicy resources under .Values.networkPolicies.enabled (default-deny gated on .Values.networkPolicies.defaultDeny). |
+| `deploy/helm/support-bot/values.yaml` | Added networkPolicies block (enabled=true, defaultDeny=true) + appLabels block (api=support-bot-api, chroma=support-bot-chroma). |
+| `infra/root.tf` | Wired module.observability (consumes cluster.cluster_name + cluster_security_group_id, identity.adot_role_arn + identity.cmk_arn, var.region). |
+| `infra/root_outputs.tf` | 4 new root outputs: application_log_group_arn, otel_log_group_arn, adot_collector_endpoint, network_policy_names. |
+| `.github/workflows/infra-ci.yml` | Added helm template NetworkPolicy count check (asserts exactly 3 NetworkPolicy resources rendered). Also added the missing WP05 storage sanity step that the WP06 base did not include. |
+
+### Test results
+
+6/6 passing -- `cd .worktrees/002-alternative-aws-infrastructure-WP06/infra/modules/observability && tofu init -backend=false && tofu test`
+
+### Validator
+
+0/0 checks passed -- `<spec-bridge-skill-tool implement WP06 --feature 002-alternative-aws-infrastructure>`
