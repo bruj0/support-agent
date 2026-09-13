@@ -48,6 +48,10 @@ plugins:
       full_screen: true
       always_show_hint: true
 
+extra_javascript:
+  - https://unpkg.com/mermaid@11/dist/mermaid.min.js
+  - js/mermaid-init.js
+
 markdown_extensions:
   - admonition
   - attr_list
@@ -80,7 +84,7 @@ nav:
         - Answering workflow: c4/4-deep-dive-answering.md
         - Observability (one request_id): c4/4-deep-dive-observability.md
         - Deployment (Helm chart): c4/4-deep-dive-deployment.md
-  - Architecture walkthrough:
-      - Architecture overview: architecture/architecture.md
-      - Local flow: architecture/local-flow.md
-      - AWS flow: architecture/aws-flow.md
+  - Architecture overview: architecture/architecture.md
+  - Local Infrastructure: architecture/local-flow.md
+  - AWS Infrastructure: architecture/aws-flow-v2.md
+  - Observability: architecture/observability.md

@@ -57,3 +57,7 @@ Thumbs.db
 .worktrees/002-alternative-aws-infrastructure-WP04/
 .worktrees/002-alternative-aws-infrastructure-WP05/
 .worktrees/002-alternative-aws-infrastructure-WP06/
+
+# mkdocs build output (generated locally by `mkdocs serve` / `mkdocs build`).
+# The published site lives on the `gh-pages` branch and is deployed by CI.
+site/
