@@ -1,0 +1,37 @@
+{{- /*
+Additive template. Ingress resource for the support-bot API.
+Renders with the chart's values; the actual apply is done by the AWS LBC
+(the tofu code in T007 applies the same shape via kubernetes_manifest).
+*/ -}}
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.ingress.name | default "support-bot-api" }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    alb.ingress.kubernetes.io/scheme: {{ .Values.ingress.scheme | default "internal" }}
+    alb.ingress.kubernetes.io/target-type: {{ .Values.ingress.targetType | default "ip" }}
+    alb.ingress.kubernetes.io/ssl-policy: {{ .Values.ingress.sslPolicy | default "ELBSecurityPolicy-TLS13-1-2-2021-06" }}
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "15"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "3"
+    {{- if .Values.ingress.wafv2AclArn }}
+    alb.ingress.kubernetes.io/wafv2-acl-arn: {{ .Values.ingress.wafv2AclArn }}
+    {{- end }}
+spec:
+  ingressClassName: alb
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.ingress.backendService | default "support-bot-api" }}
+                port:
+                  number: {{ .Values.ingress.backendPort | default 8000 }}
+{{- end }}

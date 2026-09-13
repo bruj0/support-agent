@@ -25,17 +25,10 @@ autoscaling:
   minReplicas: 2
   maxReplicas: 6
   targetCPUUtilizationPercentage: 60
+
+# Ingress is owned by the `edge` tofu module (kubernetes_manifest).
+# Disable the chart's own Ingress template here; FR-010 annotations
+# flow through the tofu code, not the chart.
 ingress:
-  enabled: true
-  className: nginx
-  annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
-  hosts:
-    - host: support-bot.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - secretName: support-bot-tls
-      hosts:
-        - support-bot.example.com
+  enabled: false
+  wafv2AclArn: ""
